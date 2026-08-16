@@ -31,7 +31,7 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
   const assignments = plan.assignments ?? []
   const upcoming = assignments
     .filter((a) => !a.is_completed)
-    .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
+    .sort((a, b) => (a.scheduled_date ?? "").localeCompare(b.scheduled_date ?? ""))
   const completed = assignments.filter((a) => a.is_completed)
 
   async function handleDeletePlan() {
@@ -92,7 +92,9 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                     <CalendarDays className="h-3 w-3" />
-                    {format(new Date(a.scheduled_date), "d. MMMM yyyy", { locale: nb })}
+                    {a.scheduled_date
+                      ? format(new Date(a.scheduled_date), "d. MMMM yyyy", { locale: nb })
+                      : "Ingen dato"}
                     {a.notes && <span className="ml-1">· {a.notes}</span>}
                   </div>
                 </div>
@@ -130,9 +132,11 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
                     <p className="text-sm line-through text-muted-foreground">
                       {a.profile?.full_name ?? a.profile?.email ?? "Ukjent"}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(a.scheduled_date), "d. MMMM yyyy", { locale: nb })}
-                    </p>
+                    {a.scheduled_date && (
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(a.scheduled_date), "d. MMMM yyyy", { locale: nb })}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

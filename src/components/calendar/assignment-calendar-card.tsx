@@ -19,8 +19,8 @@ type Props = { assignment: MaintenanceAssignment }
 export function AssignmentCalendarCard({ assignment }: Props) {
   const person = assignment.profile?.full_name ?? assignment.profile?.email ?? "Ukjent"
   const planTitle = assignment.plan?.title ?? "Vedlikehold"
-  const start = new Date(assignment.scheduled_date)
-  const end = getEndDate(start, assignment.plan?.recurrence)
+  const start = assignment.scheduled_date ? new Date(assignment.scheduled_date) : null
+  const end = start ? getEndDate(start, assignment.plan?.recurrence) : null
 
   return (
     <Card className="border-l-4 border-l-amber-400">
@@ -34,18 +34,20 @@ export function AssignmentCalendarCard({ assignment }: Props) {
               <h3 className="font-semibold text-sm">{planTitle}</h3>
               <Badge variant="warning" className="text-xs">Vedlikehold</Badge>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarDays className="h-3 w-3 shrink-0" />
-              {end ? (
-                <span>
-                  {format(start, "d. MMM", { locale: nb })}
-                  {" – "}
-                  {format(end, "d. MMMM yyyy", { locale: nb })}
-                </span>
-              ) : (
-                <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
-              )}
-            </div>
+            {start && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                {end ? (
+                  <span>
+                    {format(start, "d. MMM", { locale: nb })}
+                    {" – "}
+                    {format(end, "d. MMMM yyyy", { locale: nb })}
+                  </span>
+                ) : (
+                  <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
+                )}
+              </div>
+            )}
             <p className="mt-1 text-xs text-muted-foreground">
               Ansvarlig: <span className="font-medium text-foreground">{person}</span>
             </p>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Pencil } from "lucide-react"
@@ -14,7 +15,7 @@ import type { ProfileSummary } from "@/types"
 type Assignment = {
   id: string
   user_id: string
-  scheduled_date: string
+  scheduled_date: string | null
   notes: string | null
 }
 
@@ -23,6 +24,7 @@ type Props = { assignment: Assignment; members: ProfileSummary[] }
 export function EditAssignmentForm({ assignment, members }: Props) {
   const [open, setOpen] = useState(false)
   const [userId, setUserId] = useState(assignment.user_id)
+  const [hasDate, setHasDate] = useState(!!assignment.scheduled_date)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -33,6 +35,7 @@ export function EditAssignmentForm({ assignment, members }: Props) {
     setLoading(true)
     const fd = new FormData(e.currentTarget)
     fd.set("user_id", userId)
+    if (!hasDate) fd.set("scheduled_date", "")
     const result = await updateAssignment(assignment.id, fd)
     if (result?.error) {
       setError(result.error)
@@ -72,14 +75,25 @@ export function EditAssignmentForm({ assignment, members }: Props) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-date">Dato *</Label>
-            <Input
-              id="edit-date"
-              name="scheduled_date"
-              type="date"
-              defaultValue={assignment.scheduled_date}
-              required
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="edit-date">Dato</Label>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox
+                  checked={!hasDate}
+                  onCheckedChange={(v) => setHasDate(!v)}
+                  className="h-3.5 w-3.5"
+                />
+                Ingen dato
+              </label>
+            </div>
+            {hasDate && (
+              <Input
+                id="edit-date"
+                name="scheduled_date"
+                type="date"
+                defaultValue={assignment.scheduled_date ?? ""}
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-notes">Notater</Label>

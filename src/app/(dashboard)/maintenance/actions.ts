@@ -70,7 +70,7 @@ export async function addAssignment(formData: FormData) {
   const { error } = await supabase.from("maintenance_assignments").insert({
     plan_id,
     user_id,
-    scheduled_date,
+    scheduled_date: scheduled_date || null,
     notes: notes || null,
   })
 
@@ -103,7 +103,7 @@ export async function updateAssignment(id: string, formData: FormData) {
 
   const { error } = await supabase
     .from("maintenance_assignments")
-    .update({ user_id, scheduled_date, notes: notes?.trim() || null, updated_at: new Date().toISOString() })
+    .update({ user_id, scheduled_date: scheduled_date || null, notes: notes?.trim() || null, updated_at: new Date().toISOString() })
     .eq("id", id)
 
   if (error) return { error: error.message }

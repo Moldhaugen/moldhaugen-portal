@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { UserPlus } from "lucide-react"
@@ -16,6 +17,7 @@ type Props = { planId: string; members: ProfileSummary[] }
 export function AssignmentForm({ planId, members }: Props) {
   const [open, setOpen] = useState(false)
   const [userId, setUserId] = useState("")
+  const [hasDate, setHasDate] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -27,12 +29,14 @@ export function AssignmentForm({ planId, members }: Props) {
     const fd = new FormData(e.currentTarget)
     fd.set("plan_id", planId)
     fd.set("user_id", userId)
+    if (!hasDate) fd.set("scheduled_date", "")
     const result = await addAssignment(fd)
     if (result?.error) {
       setError(result.error)
     } else {
       setOpen(false)
       setUserId("")
+      setHasDate(true)
     }
     setLoading(false)
   }
@@ -70,8 +74,20 @@ export function AssignmentForm({ planId, members }: Props) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="scheduled_date">Dato *</Label>
-            <Input id="scheduled_date" name="scheduled_date" type="date" defaultValue={today} required />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="scheduled_date">Dato</Label>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox
+                  checked={!hasDate}
+                  onCheckedChange={(v) => setHasDate(!v)}
+                  className="h-3.5 w-3.5"
+                />
+                Ingen dato
+              </label>
+            </div>
+            {hasDate && (
+              <Input id="scheduled_date" name="scheduled_date" type="date" defaultValue={today} />
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notater</Label>

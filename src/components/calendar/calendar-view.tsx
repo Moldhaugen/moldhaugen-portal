@@ -45,16 +45,18 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
 
   const eventDates = useMemo(() => events.map((e) => parseISO(e.start_time)), [events])
 
-  const assignmentRanges = useMemo(() => assignments.map((a) => {
-    const start = parseISO(a.scheduled_date + "T00:00:00")
-    let end = start
-    switch (a.plan?.recurrence) {
-      case "weekly":   end = addDays(start, 6); break
-      case "biweekly": end = addDays(start, 13); break
-      case "monthly":  end = addMonths(start, 1); break
-    }
-    return { start, end }
-  }), [assignments])
+  const assignmentRanges = useMemo(() => assignments
+    .filter((a) => !!a.scheduled_date)
+    .map((a) => {
+      const start = parseISO(a.scheduled_date! + "T00:00:00")
+      let end = start
+      switch (a.plan?.recurrence) {
+        case "weekly":   end = addDays(start, 6); break
+        case "biweekly": end = addDays(start, 13); break
+        case "monthly":  end = addMonths(start, 1); break
+      }
+      return { start, end, id: a.id }
+    }), [assignments])
 
   function hasEvent(day: Date) { return eventDates.some((d) => isSameDay(d, day)) }
   function hasAssignment(day: Date) {
@@ -74,11 +76,13 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
           .filter((e) => isSameDay(parseISO(e.start_time), selectedDay))
           .map((e) => ({ type: "event" as const, date: parseISO(e.start_time), data: e })),
         ...assignments
-          .filter((_, i) => {
-            const { start, end } = assignmentRanges[i]
-            return isSameDay(start, selectedDay) || isWithinInterval(selectedDay, { start, end })
+          .filter((a) => {
+            if (!a.scheduled_date) return false
+            const range = assignmentRanges.find((r) => r.id === a.id)
+            if (!range) return false
+            return isSameDay(range.start, selectedDay) || isWithinInterval(selectedDay, { start: range.start, end: range.end })
           })
-          .map((a) => ({ type: "assignment" as const, date: parseISO(a.scheduled_date + "T00:00:00"), data: a })),
+          .map((a) => ({ type: "assignment" as const, date: parseISO(a.scheduled_date! + "T00:00:00"), data: a })),
       ].sort((a, b) => a.date.getTime() - b.date.getTime())
     }
 
@@ -87,11 +91,13 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
       ...events
         .filter((e) => new Date(e.end_time) >= now)
         .map((e) => ({ type: "event" as const, date: parseISO(e.start_time), data: e })),
-      ...assignments.map((a) => ({
-        type: "assignment" as const,
-        date: parseISO(a.scheduled_date + "T00:00:00"),
-        data: a,
-      })),
+      ...assignments
+        .filter((a) => !!a.scheduled_date)
+        .map((a) => ({
+          type: "assignment" as const,
+          date: parseISO(a.scheduled_date! + "T00:00:00"),
+          data: a,
+        })),
     ].sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [selectedDay, events, assignments])
 

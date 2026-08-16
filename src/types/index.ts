@@ -52,7 +52,7 @@ export type MaintenanceAssignment = {
   id: string
   plan_id: string
   user_id: string
-  scheduled_date: string
+  scheduled_date: string | null
   is_completed: boolean
   notes: string | null
   created_at: string
