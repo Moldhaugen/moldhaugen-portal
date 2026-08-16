@@ -34,10 +34,7 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
     .sort((a, b) => (a.scheduled_date ?? "").localeCompare(b.scheduled_date ?? ""))
   const completed = assignments.filter((a) => a.is_completed)
 
-  // true when the DB trigger has marked it done, or for "once" plans where all tasks are checked
-  const isCompleted =
-    plan.is_completed ||
-    (plan.recurrence === "once" && assignments.length > 0 && upcoming.length === 0)
+  const isCompleted = plan.is_completed || (assignments.length > 0 && upcoming.length === 0)
 
   async function handleDeletePlan() {
     if (!confirm(`Slett planen "${plan.title}" og alle oppgaver?`)) return
@@ -151,7 +148,7 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
           <div className="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2">
             <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
             <p className="text-sm font-medium text-green-700 dark:text-green-400">
-              {plan.recurrence === "once" ? "Oppgave fullført" : "Alle oppgaver fullført"}
+              Alle oppgaver fullført
             </p>
           </div>
         )}

@@ -77,6 +77,9 @@ export async function addAssignment(formData: FormData) {
 
   if (error) return { error: error.message }
 
+  // new assignment means the plan is no longer fully completed
+  await supabase.from("maintenance_plans").update({ is_completed: false }).eq("id", plan_id)
+
   // send email notification to assigned user (best-effort)
   const [planRes, assigneeRes, assignerRes] = await Promise.all([
     supabase.from("maintenance_plans").select("title").eq("id", plan_id).single(),

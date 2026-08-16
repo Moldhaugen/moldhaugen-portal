@@ -41,10 +41,7 @@ export default async function MaintenancePage() {
   function isPlanCompleted(p: typeof allPlans[number]) {
     if (p.is_completed) return true
     const assignments = (p.assignments ?? []) as Array<{ is_completed: boolean }>
-    if (p.recurrence === "once" && assignments.length > 0) {
-      return assignments.every((a) => a.is_completed)
-    }
-    return false
+    return assignments.length > 0 && assignments.every((a) => a.is_completed)
   }
 
   const activePlans = allPlans.filter((p) => !isPlanCompleted(p))
