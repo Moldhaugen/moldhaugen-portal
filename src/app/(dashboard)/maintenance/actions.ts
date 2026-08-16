@@ -21,6 +21,26 @@ export async function createPlan(formData: FormData) {
   return { success: true }
 }
 
+export async function updatePlan(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const title = formData.get("title") as string
+  const description = formData.get("description") as string
+  const recurrence = formData.get("recurrence") as string
+
+  const { error } = await supabase
+    .from("maintenance_plans")
+    .update({ title, description: description || null, recurrence, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("created_by", user.id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
 export async function deletePlan(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

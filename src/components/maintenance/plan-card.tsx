@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AssignmentForm } from "./assignment-form"
+import { EditPlanForm } from "./edit-plan-form"
 import { Trash2, CalendarDays, RepeatIcon } from "lucide-react"
 import type { MaintenancePlan, ProfileSummary } from "@/types"
 import { format } from "date-fns"
@@ -55,15 +56,18 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
             </div>
           </div>
           {isOwner && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
-              onClick={handleDeletePlan}
-              disabled={deletingPlan}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <EditPlanForm plan={plan} />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                onClick={handleDeletePlan}
+                disabled={deletingPlan}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
       </CardHeader>

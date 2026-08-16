@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  addDays, addMonths, subMonths, isSameDay, isSameMonth, isToday, parseISO,
+  addDays, addMonths, subMonths, isSameDay, isSameMonth, isToday, parseISO, isWithinInterval,
 } from "date-fns"
 import { nb } from "date-fns/locale"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -43,10 +43,24 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
   }, [currentMonth])
 
   const eventDates = useMemo(() => events.map((e) => parseISO(e.start_time)), [events])
-  const assignmentDates = useMemo(() => assignments.map((a) => parseISO(a.scheduled_date + "T00:00:00")), [assignments])
+
+  const assignmentRanges = useMemo(() => assignments.map((a) => {
+    const start = parseISO(a.scheduled_date + "T00:00:00")
+    let end = start
+    switch (a.plan?.recurrence) {
+      case "weekly":   end = addDays(start, 6); break
+      case "biweekly": end = addDays(start, 13); break
+      case "monthly":  end = addMonths(start, 1); break
+    }
+    return { start, end }
+  }), [assignments])
 
   function hasEvent(day: Date) { return eventDates.some((d) => isSameDay(d, day)) }
-  function hasAssignment(day: Date) { return assignmentDates.some((d) => isSameDay(d, day)) }
+  function hasAssignment(day: Date) {
+    return assignmentRanges.some(({ start, end }) =>
+      isSameDay(day, start) || isWithinInterval(day, { start, end })
+    )
+  }
 
   function handleDayClick(day: Date) {
     setSelectedDay((prev) => (prev && isSameDay(prev, day) ? null : day))
@@ -59,7 +73,10 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
           .filter((e) => isSameDay(parseISO(e.start_time), selectedDay))
           .map((e) => ({ type: "event" as const, date: parseISO(e.start_time), data: e })),
         ...assignments
-          .filter((a) => isSameDay(parseISO(a.scheduled_date + "T00:00:00"), selectedDay))
+          .filter((_, i) => {
+            const { start, end } = assignmentRanges[i]
+            return isSameDay(start, selectedDay) || isWithinInterval(selectedDay, { start, end })
+          })
           .map((a) => ({ type: "assignment" as const, date: parseISO(a.scheduled_date + "T00:00:00"), data: a })),
       ].sort((a, b) => a.date.getTime() - b.date.getTime())
     }

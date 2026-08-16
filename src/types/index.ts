@@ -58,5 +58,5 @@ export type MaintenanceAssignment = {
   created_at: string
   updated_at: string
   profile?: ProfileSummary
-  plan?: Pick<MaintenancePlan, "id" | "title">
+  plan?: Pick<MaintenancePlan, "id" | "title" | "recurrence">
 }

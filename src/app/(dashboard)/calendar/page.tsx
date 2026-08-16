@@ -22,7 +22,7 @@ export default async function CalendarPage() {
     supabase.from("profiles").select("id, full_name, email, unit_number").order("full_name"),
     supabase
       .from("maintenance_assignments")
-      .select(`*, profile:profiles(id, full_name, email, unit_number), plan:maintenance_plans(id, title)`)
+      .select(`*, profile:profiles(id, full_name, email, unit_number), plan:maintenance_plans(id, title, recurrence)`)
       .eq("is_completed", false)
       .order("scheduled_date", { ascending: true })
       .limit(50),
