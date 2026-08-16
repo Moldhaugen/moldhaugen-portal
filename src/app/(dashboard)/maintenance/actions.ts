@@ -84,3 +84,31 @@ export async function deleteAssignment(id: string) {
   revalidatePath("/maintenance")
   return { success: true }
 }
+
+export async function addSuggestion(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const title = formData.get("title") as string
+  const description = formData.get("description") as string
+
+  if (!title?.trim()) return { error: "Tittel er påkrevd" }
+
+  const { error } = await supabase.from("maintenance_suggestions").insert({
+    title: title.trim(),
+    description: description?.trim() || null,
+    created_by: user.id,
+  })
+
+  if (error) return { error: error.message }
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
+export async function deleteSuggestion(id: string) {
+  const supabase = await createClient()
+  await supabase.from("maintenance_suggestions").delete().eq("id", id)
+  revalidatePath("/maintenance")
+  return { success: true }
+}
