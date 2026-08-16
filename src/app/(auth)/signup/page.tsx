@@ -27,8 +27,8 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create account</CardTitle>
-        <CardDescription>Join the Moldhaugen neighborhood portal</CardDescription>
+        <CardTitle>Opprett konto</CardTitle>
+        <CardDescription>Bli med i Moldhaugen nabolagsportal</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -43,27 +43,40 @@ export default function SignupPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full name</Label>
+            <Label htmlFor="full_name">Fullt navn</Label>
             <Input id="full_name" name="full_name" type="text" placeholder="Ola Nordmann" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <Label htmlFor="unit_number">Nummer</Label>
+            <Input
+              id="unit_number"
+              name="unit_number"
+              type="text"
+              placeholder="f.eks. 12A"
+              pattern="[0-9]+[A-Za-z]?"
+              title="Oppgi et husnummer eller leilighetsnummer, f.eks. 12A"
+              required
+            />
+            <p className="text-xs text-muted-foreground">Husnummer eller leilighetsnummer</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="email">E-post</Label>
+            <Input id="email" name="email" type="email" placeholder="deg@eksempel.no" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Passord</Label>
             <Input id="password" name="password" type="password" minLength={6} required />
-            <p className="text-xs text-muted-foreground">At least 6 characters</p>
+            <p className="text-xs text-muted-foreground">Minst 6 tegn</p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading || !!success}>
-            {loading ? "Creating account…" : "Create account"}
+            {loading ? "Oppretter konto…" : "Opprett konto"}
           </Button>
           <p className="text-sm text-muted-foreground text-center">
-            Already have an account?{" "}
+            Har du allerede konto?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Sign in
+              Logg inn
             </Link>
           </p>
         </CardFooter>

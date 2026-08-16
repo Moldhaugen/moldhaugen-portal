@@ -3,11 +3,14 @@ export type Profile = {
   full_name: string | null
   email: string | null
   avatar_url: string | null
+  unit_number: string | null
+  is_approved: boolean
+  is_admin: boolean
   created_at: string
   updated_at: string
 }
 
-export type ProfileSummary = Pick<Profile, "id" | "full_name" | "email">
+export type ProfileSummary = Pick<Profile, "id" | "full_name" | "email" | "unit_number">
 
 export type Event = {
   id: string
@@ -20,7 +23,7 @@ export type Event = {
   created_by: string
   created_at: string
   updated_at: string
-  creator?: Profile
+  creator?: ProfileSummary
   invitations?: EventInvitation[]
 }
 
@@ -30,7 +33,7 @@ export type EventInvitation = {
   user_id: string
   status: "pending" | "accepted" | "declined"
   created_at: string
-  profile?: Profile
+  profile?: ProfileSummary
 }
 
 export type MaintenancePlan = {
@@ -41,7 +44,7 @@ export type MaintenancePlan = {
   created_by: string
   created_at: string
   updated_at: string
-  creator?: Profile
+  creator?: ProfileSummary
   assignments?: MaintenanceAssignment[]
 }
 
@@ -54,5 +57,6 @@ export type MaintenanceAssignment = {
   notes: string | null
   created_at: string
   updated_at: string
-  profile?: Profile
+  profile?: ProfileSummary
+  plan?: Pick<MaintenancePlan, "id" | "title">
 }

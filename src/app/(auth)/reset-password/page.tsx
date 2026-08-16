@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
     setError(null)
     const fd = new FormData(e.currentTarget)
     if (fd.get("password") !== fd.get("confirm")) {
-      setError("Passwords do not match")
+      setError("Passordene stemmer ikke overens")
       return
     }
     setLoading(true)
@@ -30,8 +30,8 @@ export default function ResetPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Set new password</CardTitle>
-        <CardDescription>Choose a new password for your account</CardDescription>
+        <CardTitle>Angi nytt passord</CardTitle>
+        <CardDescription>Velg et nytt passord for kontoen din</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -41,17 +41,17 @@ export default function ResetPasswordPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password">Nytt passord</Label>
             <Input id="password" name="password" type="password" minLength={6} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm">Confirm new password</Label>
+            <Label htmlFor="confirm">Bekreft nytt passord</Label>
             <Input id="confirm" name="confirm" type="password" minLength={6} required />
           </div>
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Updating…" : "Update password"}
+            {loading ? "Oppdaterer…" : "Oppdater passord"}
           </Button>
         </CardFooter>
       </form>

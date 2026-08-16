@@ -42,7 +42,6 @@ export function EventForm({ members, currentUserId }: Props) {
     const fd = new FormData(e.currentTarget)
     fd.set("is_public", String(isPublic))
     invited.forEach((id) => fd.append("invited", id))
-
     const result = await createEvent(fd)
     if (result?.error) {
       setError(result.error)
@@ -64,49 +63,42 @@ export function EventForm({ members, currentUserId }: Props) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />
-          New event
+          Ny hendelse
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create event</DialogTitle>
+          <DialogTitle>Opprett hendelse</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </div>
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>
           )}
-
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" name="title" placeholder="Event title" required />
+            <Label htmlFor="title">Tittel *</Label>
+            <Input id="title" name="title" placeholder="Hendelsens tittel" required />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" placeholder="Optional description" rows={2} />
+            <Label htmlFor="description">Beskrivelse</Label>
+            <Textarea id="description" name="description" placeholder="Valgfri beskrivelse" rows={2} />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input id="location" name="location" placeholder="e.g. Fellesarealet" />
+            <Label htmlFor="location">Sted</Label>
+            <Input id="location" name="location" placeholder="f.eks. Fellesarealet" />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="start_time">Start *</Label>
               <Input id="start_time" name="start_time" type="datetime-local" defaultValue={defaultStart} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end_time">End *</Label>
+              <Label htmlFor="end_time">Slutt *</Label>
               <Input id="end_time" name="end_time" type="datetime-local" defaultValue={defaultEnd} required />
             </div>
           </div>
 
-          {/* Visibility */}
           <div className="rounded-lg border border-border p-4 space-y-3">
-            <p className="text-sm font-medium">Visibility</p>
+            <p className="text-sm font-medium">Synlighet</p>
             <div className="flex gap-4">
               <button
                 type="button"
@@ -115,8 +107,8 @@ export function EventForm({ members, currentUserId }: Props) {
                   isPublic ? "border-primary bg-accent text-accent-foreground" : "border-border hover:bg-secondary"
                 }`}
               >
-                Public
-                <p className="text-xs font-normal text-muted-foreground mt-0.5">All members can see this</p>
+                Offentlig
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">Alle beboere kan se dette</p>
               </button>
               <button
                 type="button"
@@ -125,16 +117,14 @@ export function EventForm({ members, currentUserId }: Props) {
                   !isPublic ? "border-primary bg-accent text-accent-foreground" : "border-border hover:bg-secondary"
                 }`}
               >
-                Private
-                <p className="text-xs font-normal text-muted-foreground mt-0.5">Only invited members</p>
+                Privat
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">Kun inviterte beboere</p>
               </button>
             </div>
 
             {!isPublic && otherMembers.length > 0 && (
               <div className="space-y-2 pt-1">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Invite members
-                </p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Inviter beboere</p>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {otherMembers.map((member) => (
                     <div key={member.id} className="flex items-center gap-2">
@@ -145,24 +135,22 @@ export function EventForm({ members, currentUserId }: Props) {
                       />
                       <label htmlFor={`invite-${member.id}`} className="text-sm cursor-pointer">
                         {member.full_name ?? member.email}
+                        {member.unit_number && <span className="text-muted-foreground ml-1">({member.unit_number})</span>}
                       </label>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
             {!isPublic && otherMembers.length === 0 && (
-              <p className="text-xs text-muted-foreground">No other members to invite yet.</p>
+              <p className="text-xs text-muted-foreground">Ingen andre beboere å invitere ennå.</p>
             )}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating…" : "Create event"}
+              {loading ? "Oppretter…" : "Opprett hendelse"}
             </Button>
           </DialogFooter>
         </form>

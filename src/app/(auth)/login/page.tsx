@@ -24,8 +24,8 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>Enter your email and password to access the portal</CardDescription>
+        <CardTitle>Logg inn</CardTitle>
+        <CardDescription>Skriv inn e-post og passord for å få tilgang</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -35,14 +35,14 @@ export default function LoginPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <Label htmlFor="email">E-post</Label>
+            <Input id="email" name="email" type="email" placeholder="deg@eksempel.no" required />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Passord</Label>
               <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                Forgot password?
+                Glemt passord?
               </Link>
             </div>
             <Input id="password" name="password" type="password" required />
@@ -50,12 +50,12 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Logger inn…" : "Logg inn"}
           </Button>
           <p className="text-sm text-muted-foreground text-center">
-            Don&apos;t have an account?{" "}
+            Har du ikke konto?{" "}
             <Link href="/signup" className="text-primary hover:underline">
-              Sign up
+              Opprett konto
             </Link>
           </p>
         </CardFooter>

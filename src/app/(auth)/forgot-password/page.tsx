@@ -29,8 +29,8 @@ export default function ForgotPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reset password</CardTitle>
-        <CardDescription>Enter your email and we&apos;ll send you a reset link</CardDescription>
+        <CardTitle>Glemt passord</CardTitle>
+        <CardDescription>Skriv inn e-postadressen din, så sender vi en tilbakestillingslenke</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -45,16 +45,16 @@ export default function ForgotPasswordPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <Label htmlFor="email">E-post</Label>
+            <Input id="email" name="email" type="email" placeholder="deg@eksempel.no" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={loading || !!success}>
-            {loading ? "Sending…" : "Send reset link"}
+            {loading ? "Sender…" : "Send tilbakestillingslenke"}
           </Button>
           <Link href="/login" className="text-sm text-primary hover:underline text-center">
-            Back to sign in
+            Tilbake til innlogging
           </Link>
         </CardFooter>
       </form>

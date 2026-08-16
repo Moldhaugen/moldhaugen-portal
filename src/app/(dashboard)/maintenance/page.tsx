@@ -15,14 +15,14 @@ export default async function MaintenancePage() {
       .from("maintenance_plans")
       .select(`
         *,
-        creator:profiles!maintenance_plans_created_by_fkey(id, full_name, email),
+        creator:profiles!maintenance_plans_created_by_fkey(id, full_name, email, unit_number),
         assignments:maintenance_assignments(
           id, plan_id, user_id, scheduled_date, is_completed, notes, created_at,
-          profile:profiles(id, full_name, email)
+          profile:profiles(id, full_name, email, unit_number)
         )
       `)
       .order("created_at", { ascending: false }),
-    supabase.from("profiles").select("id, full_name, email").order("full_name"),
+    supabase.from("profiles").select("id, full_name, email, unit_number").order("full_name"),
   ])
 
   const plans = plansRes.data ?? []
@@ -30,40 +30,33 @@ export default async function MaintenancePage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            Maintenance
+            Vedlikehold
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {plans.length === 0
-              ? "No maintenance plans yet"
-              : `${plans.length} maintenance plan${plans.length !== 1 ? "s" : ""}`}
+              ? "Ingen vedlikeholdsplaner ennå"
+              : `${plans.length} vedlikeholdsplan${plans.length !== 1 ? "er" : ""}`}
           </p>
         </div>
         <PlanForm />
       </div>
 
-      {/* Plans */}
       {plans.length > 0 ? (
         <div className="space-y-6">
           {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              members={members}
-              currentUserId={user.id}
-            />
+            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={user.id} />
           ))}
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <Wrench className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium text-foreground">No maintenance plans yet</p>
+          <p className="font-medium text-foreground">Ingen vedlikeholdsplaner ennå</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Create a plan to track shared responsibilities like lawn mowing, snow clearing, etc.
+            Opprett en plan for å organisere felles oppgaver som gressklipper, snørydding osv.
           </p>
         </div>
       )}

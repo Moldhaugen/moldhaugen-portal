@@ -8,11 +8,9 @@ import { Button } from "@/components/ui/button"
 import { CalendarDays, Clock, MapPin, Trash2, Users, Lock } from "lucide-react"
 import type { Event } from "@/types"
 import { format } from "date-fns"
+import { nb } from "date-fns/locale"
 
-type Props = {
-  event: Event
-  currentUserId: string
-}
+type Props = { event: Event; currentUserId: string }
 
 export function EventCard({ event, currentUserId }: Props) {
   const [loading, setLoading] = useState(false)
@@ -23,7 +21,7 @@ export function EventCard({ event, currentUserId }: Props) {
   const sameDay = start.toDateString() === end.toDateString()
 
   async function handleDelete() {
-    if (!confirm(`Delete "${event.title}"?`)) return
+    if (!confirm(`Slett "${event.title}"?`)) return
     setLoading(true)
     await deleteEvent(event.id)
     setLoading(false)
@@ -38,23 +36,22 @@ export function EventCard({ event, currentUserId }: Props) {
               <h3 className="font-semibold text-sm">{event.title}</h3>
               <Badge variant={event.is_public ? "secondary" : "outline"} className="text-xs flex items-center gap-1">
                 {event.is_public ? (
-                  <><Users className="h-3 w-3" /> Public</>
+                  <><Users className="h-3 w-3" /> Offentlig</>
                 ) : (
-                  <><Lock className="h-3 w-3" /> Private</>
+                  <><Lock className="h-3 w-3" /> Privat</>
                 )}
               </Badge>
             </div>
-
             <div className="space-y-1 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <CalendarDays className="h-3 w-3 shrink-0" />
-                <span>{format(start, "d. MMM yyyy")}</span>
+                <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Clock className="h-3 w-3 shrink-0" />
                 <span>
                   {format(start, "HH:mm")} –{" "}
-                  {sameDay ? format(end, "HH:mm") : format(end, "d. MMM HH:mm")}
+                  {sameDay ? format(end, "HH:mm") : format(end, "d. MMM HH:mm", { locale: nb })}
                 </span>
               </div>
               {event.location && (
@@ -64,24 +61,20 @@ export function EventCard({ event, currentUserId }: Props) {
                 </div>
               )}
             </div>
-
             {event.description && (
               <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{event.description}</p>
             )}
-
             {event.creator && (
               <p className="mt-2 text-xs text-muted-foreground">
-                By {event.creator.full_name ?? event.creator.email}
+                Av {event.creator.full_name ?? event.creator.email}
               </p>
             )}
-
             {!event.is_public && event.invitations && event.invitations.length > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                {event.invitations.length} invited
+                {event.invitations.length} invitert
               </p>
             )}
           </div>
-
           {isOwner && (
             <Button
               variant="ghost"

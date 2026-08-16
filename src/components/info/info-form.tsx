@@ -1,86 +1,79 @@
 "use client"
 
 import { useState } from "react"
-import { addAssignment } from "@/app/(dashboard)/maintenance/actions"
+import { addInfoEntry } from "@/app/(dashboard)/info/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { UserPlus } from "lucide-react"
-import type { ProfileSummary } from "@/types"
+import { Plus } from "lucide-react"
 
-type Props = { planId: string; members: ProfileSummary[] }
+const CATEGORIES = ["Tjenester", "Kontakter", "Nødhjelp", "Annet"]
 
-export function AssignmentForm({ planId, members }: Props) {
+export function InfoForm() {
   const [open, setOpen] = useState(false)
-  const [userId, setUserId] = useState("")
+  const [category, setCategory] = useState("Tjenester")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!userId) { setError("Velg en beboer"); return }
     setError(null)
     setLoading(true)
     const fd = new FormData(e.currentTarget)
-    fd.set("plan_id", planId)
-    fd.set("user_id", userId)
-    const result = await addAssignment(fd)
+    fd.set("category", category)
+    const result = await addInfoEntry(fd)
     if (result?.error) {
       setError(result.error)
     } else {
       setOpen(false)
-      setUserId("")
+      setCategory("Tjenester")
     }
     setLoading(false)
   }
 
-  const today = new Date().toISOString().split("T")[0]
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <UserPlus className="h-3.5 w-3.5" />
-          Legg til oppgave
-        </Button>
+        <Button><Plus className="h-4 w-4" />Legg til</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Legg til oppgave</DialogTitle>
+          <DialogTitle>Legg til nyttig info</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>
           )}
           <div className="space-y-2">
-            <Label>Ansvarlig beboer *</Label>
-            <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger><SelectValue placeholder="Velg beboer…" /></SelectTrigger>
+            <Label htmlFor="title">Tittel *</Label>
+            <Input id="title" name="title" placeholder="f.eks. Snømåking AS" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone_number">Telefonnummer</Label>
+            <Input id="phone_number" name="phone_number" type="tel" placeholder="f.eks. 815 00 555" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Beskrivelse</Label>
+            <Textarea id="description" name="description" placeholder="Kort beskrivelse" rows={2} />
+          </div>
+          <div className="space-y-2">
+            <Label>Kategori</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {members.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.full_name ?? m.email}
-                    {m.unit_number && ` (${m.unit_number})`}
-                  </SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="scheduled_date">Dato *</Label>
-            <Input id="scheduled_date" name="scheduled_date" type="date" defaultValue={today} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notater</Label>
-            <Textarea id="notes" name="notes" placeholder="Valgfrie notater" rows={2} />
-          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Legger til…" : "Legg til"}
+              {loading ? "Lagrer…" : "Legg til"}
             </Button>
           </DialogFooter>
         </form>
