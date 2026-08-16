@@ -63,7 +63,7 @@ export function EventForm({ members, currentUserId }: Props) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />
-          Ny hendelse
+          <span className="hidden sm:inline">Ny hendelse</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">

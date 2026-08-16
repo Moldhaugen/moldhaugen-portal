@@ -33,7 +33,7 @@ export function SuggestionForm() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Lightbulb className="h-3.5 w-3.5" />
-          Kom med forslag
+          <span className="hidden sm:inline">Kom med forslag</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

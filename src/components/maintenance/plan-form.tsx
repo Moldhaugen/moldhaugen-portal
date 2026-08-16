@@ -50,7 +50,7 @@ export function PlanForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4" />Ny plan</Button>
+        <Button><Plus className="h-4 w-4" /><span className="hidden sm:inline">Ny plan</span></Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

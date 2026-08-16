@@ -37,7 +37,7 @@ export function InfoForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4" />Legg til</Button>
+        <Button><Plus className="h-4 w-4" /><span className="hidden sm:inline">Legg til</span></Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

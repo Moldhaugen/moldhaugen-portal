@@ -31,7 +31,7 @@ export function PostForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4" />Nytt innlegg</Button>
+        <Button><Plus className="h-4 w-4" /><span className="hidden sm:inline">Nytt innlegg</span></Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
