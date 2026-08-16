@@ -1,0 +1,100 @@
+"use client"
+
+import { useState } from "react"
+import { deleteEvent } from "@/app/(dashboard)/calendar/actions"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { CalendarDays, Clock, MapPin, Trash2, Users, Lock } from "lucide-react"
+import type { Event } from "@/types"
+import { format } from "date-fns"
+
+type Props = {
+  event: Event
+  currentUserId: string
+}
+
+export function EventCard({ event, currentUserId }: Props) {
+  const [loading, setLoading] = useState(false)
+  const isOwner = event.created_by === currentUserId
+
+  const start = new Date(event.start_time)
+  const end = new Date(event.end_time)
+  const sameDay = start.toDateString() === end.toDateString()
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${event.title}"?`)) return
+    setLoading(true)
+    await deleteEvent(event.id)
+    setLoading(false)
+  }
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h3 className="font-semibold text-sm">{event.title}</h3>
+              <Badge variant={event.is_public ? "secondary" : "outline"} className="text-xs flex items-center gap-1">
+                {event.is_public ? (
+                  <><Users className="h-3 w-3" /> Public</>
+                ) : (
+                  <><Lock className="h-3 w-3" /> Private</>
+                )}
+              </Badge>
+            </div>
+
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                <span>{format(start, "d. MMM yyyy")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 shrink-0" />
+                <span>
+                  {format(start, "HH:mm")} –{" "}
+                  {sameDay ? format(end, "HH:mm") : format(end, "d. MMM HH:mm")}
+                </span>
+              </div>
+              {event.location && (
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+              )}
+            </div>
+
+            {event.description && (
+              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{event.description}</p>
+            )}
+
+            {event.creator && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                By {event.creator.full_name ?? event.creator.email}
+              </p>
+            )}
+
+            {!event.is_public && event.invitations && event.invitations.length > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {event.invitations.length} invited
+              </p>
+            )}
+          </div>
+
+          {isOwner && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
