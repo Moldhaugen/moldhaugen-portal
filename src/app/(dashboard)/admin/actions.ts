@@ -1,7 +1,14 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
+
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  return createAdminClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+}
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -41,6 +48,17 @@ export async function rejectUser(userId: string) {
     .delete()
     .eq("id", userId)
 
+  if (err) return { error: err.message }
+  revalidatePath("/admin")
+  return { success: true }
+}
+
+export async function deleteUser(userId: string) {
+  const { supabase, error } = await requireAdmin()
+  if (error || !supabase) return { error }
+
+  const admin = getAdminClient()
+  const { error: err } = await admin.auth.admin.deleteUser(userId)
   if (err) return { error: err.message }
   revalidatePath("/admin")
   return { success: true }
