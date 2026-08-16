@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AdminUserList } from "@/components/admin/user-list"
-import { ShieldCheck } from "lucide-react"
+import { AnnouncementForm } from "@/components/admin/announcement-form"
+import { ShieldCheck, Send } from "lucide-react"
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -37,6 +38,22 @@ export default async function AdminPage() {
       </div>
 
       <AdminUserList pending={pending} approved={approved} currentUserId={user.id} />
+
+      {/* Announcement section */}
+      <div className="mt-12 border-t border-border pt-8">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Send className="h-5 w-5 text-primary" />
+            Send melding til alle beboere
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Meldingen sendes på e-post til alle godkjente beboere ({approved.length} stk)
+          </p>
+        </div>
+        <div className="max-w-lg">
+          <AnnouncementForm recipientCount={approved.length} />
+        </div>
+      </div>
     </div>
   )
 }

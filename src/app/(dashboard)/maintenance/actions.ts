@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { sendEmail, assignmentEmail } from "@/lib/email"
 
 export async function createPlan(formData: FormData) {
   const supabase = await createClient()
@@ -75,6 +76,23 @@ export async function addAssignment(formData: FormData) {
   })
 
   if (error) return { error: error.message }
+
+  // send email notification to assigned user (best-effort)
+  const [planRes, assigneeRes, assignerRes] = await Promise.all([
+    supabase.from("maintenance_plans").select("title").eq("id", plan_id).single(),
+    supabase.from("profiles").select("email, full_name").eq("id", user_id).single(),
+    supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+  ])
+  if (assigneeRes.data?.email && planRes.data) {
+    const html = assignmentEmail({
+      planTitle: planRes.data.title,
+      assignerName: assignerRes.data?.full_name ?? "En administrator",
+      scheduledDate: scheduled_date || null,
+      notes: notes || null,
+    })
+    sendEmail(assigneeRes.data.email, `Vedlikeholdsoppgave: ${planRes.data.title}`, html)
+  }
+
   revalidatePath("/maintenance")
   return { success: true }
 }

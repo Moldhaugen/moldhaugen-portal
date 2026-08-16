@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PlanForm } from "@/components/maintenance/plan-form"
-import { PlanCard } from "@/components/maintenance/plan-card"
+import { PlansSection } from "@/components/maintenance/plans-section"
 import { SuggestionForm } from "@/components/maintenance/suggestion-form"
 import { SuggestionCard } from "@/components/maintenance/suggestion-card"
-import { Wrench, Lightbulb } from "lucide-react"
+import { Lightbulb } from "lucide-react"
 import type { ProfileSummary } from "@/types"
 
 export default async function MaintenancePage() {
@@ -37,45 +36,30 @@ export default async function MaintenancePage() {
       .order("created_at", { ascending: false }),
   ])
 
-  const plans = plansRes.data ?? []
+  const allPlans = plansRes.data ?? []
+
+  function isPlanCompleted(p: typeof allPlans[number]) {
+    if (p.is_completed) return true
+    const assignments = (p.assignments ?? []) as Array<{ is_completed: boolean }>
+    if (p.recurrence === "once" && assignments.length > 0) {
+      return assignments.every((a) => a.is_completed)
+    }
+    return false
+  }
+
+  const activePlans = allPlans.filter((p) => !isPlanCompleted(p))
+  const completedPlans = allPlans.filter((p) => isPlanCompleted(p))
   const members = (profilesRes.data ?? []) as ProfileSummary[]
   const suggestions = suggestionsRes.data ?? []
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-10">
-      {/* Plans section */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Wrench className="h-6 w-6 text-primary" />
-              Vedlikehold
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {plans.length === 0
-                ? "Ingen vedlikeholdsplaner ennå"
-                : `${plans.length} vedlikeholdsplan${plans.length !== 1 ? "er" : ""}`}
-            </p>
-          </div>
-          <PlanForm />
-        </div>
-
-        {plans.length > 0 ? (
-          <div className="space-y-6">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} members={members} currentUserId={user.id} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-border p-10 text-center">
-            <Wrench className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-            <p className="font-medium text-foreground">Ingen vedlikeholdsplaner ennå</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Opprett en plan for å organisere felles oppgaver som gressklipper, snørydding osv.
-            </p>
-          </div>
-        )}
-      </div>
+      <PlansSection
+        activePlans={activePlans}
+        completedPlans={completedPlans}
+        members={members}
+        currentUserId={user.id}
+      />
 
       {/* Suggestions section */}
       <div>

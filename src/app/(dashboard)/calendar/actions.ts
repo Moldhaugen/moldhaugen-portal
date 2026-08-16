@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { sendEmail, eventEmail } from "@/lib/email"
 
 export async function createEvent(formData: FormData) {
   const supabase = await createClient()
@@ -24,10 +25,48 @@ export async function createEvent(formData: FormData) {
 
   if (error) return { error: error.message }
 
+  // fetch creator name once for emails
+  const { data: creator } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", user.id)
+    .single()
+
+  const emailHtml = eventEmail({
+    eventTitle: title,
+    startTime: start_time,
+    endTime: end_time,
+    location: location || null,
+    description: description || null,
+    isPublic: is_public,
+    creatorName: creator?.full_name ?? "En beboer",
+  })
+
   if (!is_public && invited.length > 0) {
     await supabase.from("event_invitations").insert(
       invited.map((uid) => ({ event_id: event.id, user_id: uid }))
     )
+    // email the invitees
+    const { data: inviteeProfiles } = await supabase
+      .from("profiles")
+      .select("email")
+      .in("id", invited)
+      .not("email", "is", null)
+    const inviteeEmails = (inviteeProfiles ?? []).map((p) => p.email!).filter((e) => e !== creator?.email)
+    if (inviteeEmails.length > 0) {
+      sendEmail(inviteeEmails, `Invitasjon: ${title}`, emailHtml)
+    }
+  } else if (is_public) {
+    // notify all approved users except the creator
+    const { data: allProfiles } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("is_approved", true)
+      .not("email", "is", null)
+    const publicEmails = (allProfiles ?? []).map((p) => p.email!).filter((e) => e !== creator?.email)
+    if (publicEmails.length > 0) {
+      sendEmail(publicEmails, `Ny hendelse: ${title}`, emailHtml)
+    }
   }
 
   revalidatePath("/calendar")

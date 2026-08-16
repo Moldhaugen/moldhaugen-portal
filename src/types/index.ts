@@ -41,6 +41,7 @@ export type MaintenancePlan = {
   title: string
   description: string | null
   recurrence: "weekly" | "biweekly" | "monthly" | "custom" | "once"
+  is_completed: boolean
   created_by: string
   created_at: string
   updated_at: string
