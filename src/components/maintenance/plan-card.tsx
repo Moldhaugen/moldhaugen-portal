@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { AssignmentForm } from "./assignment-form"
 import { EditPlanForm } from "./edit-plan-form"
 import { EditAssignmentForm } from "./edit-assignment-form"
-import { Trash2, CalendarDays, RepeatIcon } from "lucide-react"
+import { Trash2, CalendarDays, RepeatIcon, CheckCircle2 } from "lucide-react"
 import type { MaintenancePlan, ProfileSummary } from "@/types"
 import { format } from "date-fns"
 import { nb } from "date-fns/locale"
@@ -20,6 +20,7 @@ const RECURRENCE_LABELS: Record<string, string> = {
   weekly: "Ukentlig",
   biweekly: "Annenhver uke",
   monthly: "Månedlig",
+  once: "Engangs",
   custom: "Tilpasset",
 }
 
@@ -138,7 +139,14 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
             </div>
           </div>
         )}
-        <AssignmentForm planId={plan.id} members={members} />
+        {plan.recurrence === "once" && assignments.length > 0 && upcoming.length === 0 ? (
+          <div className="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2">
+            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">Oppgave fullført</p>
+          </div>
+        ) : (
+          <AssignmentForm planId={plan.id} members={members} />
+        )}
       </CardContent>
     </Card>
   )

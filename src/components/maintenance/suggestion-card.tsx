@@ -111,6 +111,7 @@ export function SuggestionCard({ suggestion, currentUserId, isAdmin }: Props) {
               <Select value={recurrence} onValueChange={setRecurrence}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="once">Engangs</SelectItem>
                   <SelectItem value="weekly">Ukentlig</SelectItem>
                   <SelectItem value="biweekly">Annenhver uke</SelectItem>
                   <SelectItem value="monthly">Månedlig</SelectItem>
