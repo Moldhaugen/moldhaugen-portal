@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { PostForm } from "@/components/oppslagstavle/post-form"
-import { PostCard } from "@/components/oppslagstavle/post-card"
+import { PostListCard } from "@/components/oppslagstavle/post-list-card"
 import { Pin } from "lucide-react"
 
 export default async function OppslagstavlePage() {
@@ -18,13 +18,11 @@ export default async function OppslagstavlePage() {
   const { data: posts } = await supabase
     .from("bulletin_posts")
     .select(`
-      *,
+      id, title, is_pinned, created_by, created_at,
       creator:profiles!bulletin_posts_created_by_fkey(id, full_name, email),
-      comments:bulletin_comments(
-        id, body, created_by, created_at,
-        creator:profiles!bulletin_comments_created_by_fkey(id, full_name, email)
-      )
+      comments:bulletin_comments(id)
     `)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
 
   const allPosts = posts ?? []
@@ -38,18 +36,16 @@ export default async function OppslagstavlePage() {
             Oppslagstavle
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {allPosts.length === 0
-              ? "Ingen innlegg ennå"
-              : `${allPosts.length} innlegg`}
+            {allPosts.length === 0 ? "Ingen innlegg ennå" : `${allPosts.length} innlegg`}
           </p>
         </div>
         <PostForm />
       </div>
 
       {allPosts.length > 0 ? (
-        <div className="space-y-4">
-          {allPosts.map((post) => (
-            <PostCard
+        <div className="space-y-2">
+          {(allPosts as any[]).map((post) => (
+            <PostListCard
               key={post.id}
               post={post}
               currentUserId={user.id}

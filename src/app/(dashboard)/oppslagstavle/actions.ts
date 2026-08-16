@@ -42,3 +42,9 @@ export async function deleteComment(id: string) {
   await supabase.from("bulletin_comments").delete().eq("id", id)
   revalidatePath("/oppslagstavle")
 }
+
+export async function pinPost(id: string, is_pinned: boolean) {
+  const supabase = await createClient()
+  await supabase.from("bulletin_posts").update({ is_pinned }).eq("id", id)
+  revalidatePath("/oppslagstavle")
+}
