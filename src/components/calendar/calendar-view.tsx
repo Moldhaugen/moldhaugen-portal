@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Link from "next/link"
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, addMonths, subMonths, isSameDay, isSameMonth, isToday, parseISO, isWithinInterval,
@@ -187,7 +188,13 @@ export function CalendarView({ events, assignments, currentUserId }: Props) {
               item.type === "event" ? (
                 <EventCard key={`e-${item.data.id}`} event={item.data} currentUserId={currentUserId} />
               ) : (
-                <AssignmentCalendarCard key={`a-${item.data.id}`} assignment={item.data} />
+                <Link
+                  key={`a-${item.data.id}`}
+                  href={`/maintenance#${item.data.plan?.id ?? ""}`}
+                  className="block hover:opacity-80 transition-opacity"
+                >
+                  <AssignmentCalendarCard assignment={item.data} />
+                </Link>
               )
             )}
           </div>

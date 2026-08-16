@@ -39,7 +39,7 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
   }
 
   return (
-    <Card>
+    <Card id={plan.id}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
