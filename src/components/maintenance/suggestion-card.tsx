@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Trash2, ArrowRightCircle } from "lucide-react"
+import { Trash2, CheckCircle } from "lucide-react"
 
 type Suggestion = {
   id: string
@@ -72,7 +72,7 @@ export function SuggestionCard({ suggestion, currentUserId, isAdmin }: Props) {
               onClick={() => setConvertOpen(true)}
               title="Konverter til plan"
             >
-              <ArrowRightCircle className="h-4 w-4" />
+              <CheckCircle className="h-4 w-4" />
             </Button>
           )}
           {canDelete && (
