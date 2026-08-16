@@ -92,6 +92,25 @@ export async function toggleAssignment(id: string, is_completed: boolean) {
   return { success: true }
 }
 
+export async function updateAssignment(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const user_id = formData.get("user_id") as string
+  const scheduled_date = formData.get("scheduled_date") as string
+  const notes = formData.get("notes") as string
+
+  const { error } = await supabase
+    .from("maintenance_assignments")
+    .update({ user_id, scheduled_date, notes: notes?.trim() || null, updated_at: new Date().toISOString() })
+    .eq("id", id)
+
+  if (error) return { error: error.message }
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
 export async function deleteAssignment(id: string) {
   const supabase = await createClient()
 

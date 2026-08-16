@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AssignmentForm } from "./assignment-form"
 import { EditPlanForm } from "./edit-plan-form"
+import { EditAssignmentForm } from "./edit-assignment-form"
 import { Trash2, CalendarDays, RepeatIcon } from "lucide-react"
 import type { MaintenancePlan, ProfileSummary } from "@/types"
 import { format } from "date-fns"
@@ -94,14 +95,17 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
                     {a.notes && <span className="ml-1">· {a.notes}</span>}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-                  onClick={() => deleteAssignment(a.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <EditAssignmentForm assignment={a} members={members} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => deleteAssignment(a.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
