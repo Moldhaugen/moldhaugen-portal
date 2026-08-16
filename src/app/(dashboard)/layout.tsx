@@ -4,8 +4,8 @@ import { CalendarDays, Wrench, Home, LogOut, ShieldCheck, BookOpen, Pin } from "
 import { createClient } from "@/lib/supabase/server"
 import { logout } from "@/app/(auth)/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { MobileProfileMenu } from "@/components/layout/mobile-profile-menu"
 
 const navItems = [
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
@@ -35,14 +35,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .slice(0, 2)
     .toUpperCase()
 
-  const allNavItems = [
+  const sidebarNavItems = [
     ...navItems,
     ...(profile?.is_admin ? [{ href: "/admin", label: "Administrasjon", icon: ShieldCheck }] : []),
   ]
 
   return (
     <div className="flex h-full min-h-screen">
-      {/* Sidebar */}
+      {/* Desktop sidebar */}
       <aside
         className="hidden md:flex w-64 flex-col"
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-fg)" }}
@@ -64,7 +64,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Separator style={{ background: "var(--sidebar-border)" }} />
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {allNavItems.map(({ href, label, icon: Icon }) => (
+          {sidebarNavItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -115,17 +115,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
           <span className="font-semibold text-sm">Moldhaugen</span>
         </div>
-        <Link href="/profile">
-          <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary transition-all">
-            {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={displayName} />}
-            <AvatarFallback className="bg-primary text-white text-xs">{initials}</AvatarFallback>
-          </Avatar>
-        </Link>
+        <MobileProfileMenu
+          displayName={displayName}
+          initials={initials}
+          avatarUrl={profile?.avatar_url ?? null}
+          isAdmin={!!profile?.is_admin}
+        />
       </div>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — core pages only */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center border-t border-border bg-card">
-        {allNavItems.map(({ href, label, icon: Icon }) => (
+        {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -135,15 +135,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span className="text-[10px] font-medium leading-none">{label}</span>
           </Link>
         ))}
-        <form action={logout} className="flex flex-1">
-          <button
-            type="submit"
-            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="text-[10px] font-medium leading-none">Logg ut</span>
-          </button>
-        </form>
       </nav>
 
       <main className="flex-1 overflow-auto bg-background md:pt-0 pt-14 pb-16 md:pb-0">
