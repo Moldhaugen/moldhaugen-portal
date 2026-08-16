@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Lightbulb } from "lucide-react"
+import { Lightbulb, Plus } from "lucide-react"
 
 export function SuggestionForm() {
   const [open, setOpen] = useState(false)
@@ -32,7 +32,10 @@ export function SuggestionForm() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <Lightbulb className="h-3.5 w-3.5" />
+          <span className="relative shrink-0">
+            <Lightbulb className="h-4 w-4" />
+            <Plus className="h-2.5 w-2.5 absolute -bottom-1 -right-1 text-primary bg-card rounded-full" strokeWidth={3} />
+          </span>
           <span className="hidden sm:inline">Kom med forslag</span>
         </Button>
       </DialogTrigger>
