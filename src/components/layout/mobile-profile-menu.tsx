@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { logout } from "@/app/(auth)/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, ShieldCheck, LogOut } from "lucide-react"
+import { User, ShieldCheck, LogOut, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 
 type Props = {
   displayName: string
@@ -16,6 +17,7 @@ type Props = {
 export function MobileProfileMenu({ displayName, initials, avatarUrl, isAdmin }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -60,6 +62,18 @@ export function MobileProfileMenu({ displayName, initials, avatarUrl, isAdmin }:
                 Administrasjon
               </Link>
             )}
+          </div>
+
+          <div className="border-t border-border py-1">
+            <button
+              onClick={() => { setTheme(resolvedTheme === "dark" ? "light" : "dark"); setOpen(false) }}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors"
+            >
+              {resolvedTheme === "dark"
+                ? <Sun className="h-4 w-4 text-muted-foreground" />
+                : <Moon className="h-4 w-4 text-muted-foreground" />}
+              {resolvedTheme === "dark" ? "Lyst modus" : "Mørkt modus"}
+            </button>
           </div>
 
           <div className="border-t border-border py-1">

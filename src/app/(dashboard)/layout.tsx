@@ -6,6 +6,7 @@ import { logout } from "@/app/(auth)/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { MobileProfileMenu } from "@/components/layout/mobile-profile-menu"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const navItems = [
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
@@ -94,6 +95,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {user.email}
             </p>
           </Link>
+          <ThemeToggle
+            className="rounded p-1 hover:bg-white/10 transition-colors"
+            style={{ color: "var(--sidebar-muted-fg)" }}
+          />
           <form action={logout}>
             <button
               type="submit"
