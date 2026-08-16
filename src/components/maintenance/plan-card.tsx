@@ -47,7 +47,7 @@ export function PlanCard({ plan, members, currentUserId }: Props) {
             <CardTitle className="text-base">{plan.title}</CardTitle>
             {plan.description && <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>}
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <Badge variant="outline" className="text-xs flex items-center gap-1 whitespace-nowrap shrink-0">
                 <RepeatIcon className="h-3 w-3" />
                 {RECURRENCE_LABELS[plan.recurrence] ?? plan.recurrence}
               </Badge>
