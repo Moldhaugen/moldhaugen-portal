@@ -105,6 +105,34 @@ export async function deleteAssignment(id: string) {
   return { success: true }
 }
 
+export async function convertSuggestionToPlan(suggestionId: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  if (!profile?.is_admin) return { error: "Ingen tilgang" }
+
+  const title = formData.get("title") as string
+  const description = formData.get("description") as string
+  const recurrence = formData.get("recurrence") as string
+
+  if (!title?.trim()) return { error: "Tittel er påkrevd" }
+
+  const { error } = await supabase.from("maintenance_plans").insert({
+    title: title.trim(),
+    description: description?.trim() || null,
+    recurrence: recurrence || "weekly",
+    created_by: user.id,
+  })
+
+  if (error) return { error: error.message }
+
+  await supabase.from("maintenance_suggestions").delete().eq("id", suggestionId)
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
 export async function addSuggestion(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
