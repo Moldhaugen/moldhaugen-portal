@@ -11,13 +11,8 @@ export default async function MaintenancePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single()
-
-  const [plansRes, profilesRes, suggestionsRes] = await Promise.all([
+  const [profileRes, plansRes, profilesRes, suggestionsRes] = await Promise.all([
+    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
     supabase
       .from("maintenance_plans")
       .select(`
@@ -82,7 +77,7 @@ export default async function MaintenancePage() {
                 key={s.id}
                 suggestion={s}
                 currentUserId={user.id}
-                isAdmin={!!profile?.is_admin}
+                isAdmin={!!profileRes.data?.is_admin}
               />
             ))}
           </div>

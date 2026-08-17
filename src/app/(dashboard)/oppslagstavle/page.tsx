@@ -9,21 +9,18 @@ export default async function OppslagstavlePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single()
-
-  const { data: posts } = await supabase
-    .from("bulletin_posts")
-    .select(`
-      id, title, is_pinned, created_by, created_at,
-      creator:profiles!bulletin_posts_created_by_fkey(id, full_name, email),
-      comments:bulletin_comments(id)
-    `)
-    .order("is_pinned", { ascending: false })
-    .order("created_at", { ascending: false })
+  const [{ data: profile }, { data: posts }] = await Promise.all([
+    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
+    supabase
+      .from("bulletin_posts")
+      .select(`
+        id, title, is_pinned, created_by, created_at,
+        creator:profiles!bulletin_posts_created_by_fkey(id, full_name, email),
+        comments:bulletin_comments(id)
+      `)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false }),
+  ])
 
   const allPosts = posts ?? []
 
