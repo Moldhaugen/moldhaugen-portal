@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 import { sendEmail, approvalEmail, announcementEmail } from "@/lib/email"
+import { sendPushToUsers } from "@/lib/push"
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -110,20 +111,23 @@ export async function sendAnnouncement(formData: FormData) {
 
   const { data: recipients } = await supabase
     .from("profiles")
-    .select("email")
+    .select("id, email, push_notifications_enabled")
     .eq("is_approved", true)
-    .not("email", "is", null)
 
-  const emails = (recipients ?? []).map((r) => r.email!).filter(Boolean)
-  if (emails.length === 0) return { error: "Ingen mottakere funnet" }
+  if (!recipients || recipients.length === 0) return { error: "Ingen mottakere funnet" }
 
-  const html = announcementEmail({
-    subject,
-    body,
-    senderName: sender?.full_name ?? "Administrator",
-    portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
-  })
-  await sendEmail(emails, subject, html)
+  const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  const senderName = sender?.full_name ?? "Administrator"
+
+  const emails = recipients.map((r) => r.email).filter(Boolean) as string[]
+  if (emails.length > 0) {
+    await sendEmail(emails, subject, announcementEmail({ subject, body, senderName, portalUrl }))
+  }
+
+  const pushIds = recipients.filter((r) => r.push_notifications_enabled).map((r) => r.id)
+  if (pushIds.length > 0) {
+    sendPushToUsers(pushIds, subject, `${senderName}: ${body.slice(0, 80)}`, portalUrl)
+  }
 
   return { success: true }
 }

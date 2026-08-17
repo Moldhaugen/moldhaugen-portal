@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { sendEmail, assignmentEmail } from "@/lib/email"
+import { sendPushToUsers } from "@/lib/push"
 
 export async function createPlan(formData: FormData) {
   const supabase = await createClient()
@@ -83,18 +84,25 @@ export async function addAssignment(formData: FormData) {
   // send email notification to assigned user (best-effort)
   const [planRes, assigneeRes, assignerRes] = await Promise.all([
     supabase.from("maintenance_plans").select("title").eq("id", plan_id).single(),
-    supabase.from("profiles").select("email, full_name").eq("id", user_id).single(),
+    supabase.from("profiles").select("email, full_name, push_notifications_enabled").eq("id", user_id).single(),
     supabase.from("profiles").select("full_name").eq("id", user.id).single(),
   ])
-  if (assigneeRes.data?.email && planRes.data) {
-    const html = assignmentEmail({
-      planTitle: planRes.data.title,
-      assignerName: assignerRes.data?.full_name ?? "En administrator",
-      scheduledDate: scheduled_date || null,
-      notes: notes || null,
-      portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
-    })
-    sendEmail(assigneeRes.data.email, `Vedlikeholdsoppgave: ${planRes.data.title}`, html)
+  if (planRes.data) {
+    const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+    const assignerName = assignerRes.data?.full_name ?? "En administrator"
+    if (assigneeRes.data?.email) {
+      const html = assignmentEmail({
+        planTitle: planRes.data.title,
+        assignerName,
+        scheduledDate: scheduled_date || null,
+        notes: notes || null,
+        portalUrl,
+      })
+      sendEmail(assigneeRes.data.email, `Vedlikeholdsoppgave: ${planRes.data.title}`, html)
+    }
+    if (assigneeRes.data?.push_notifications_enabled) {
+      sendPushToUsers([user_id], `Ny vedlikeholdsoppgave`, `${assignerName}: ${planRes.data.title}`, `${portalUrl}/maintenance`)
+    }
   }
 
   revalidatePath("/maintenance")

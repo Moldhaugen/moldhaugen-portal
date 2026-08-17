@@ -7,6 +7,7 @@ export type Profile = {
   is_approved: boolean
   is_admin: boolean
   email_bulletin_notifications: boolean
+  push_notifications_enabled: boolean
   phone_number: string | null
   created_at: string
   updated_at: string

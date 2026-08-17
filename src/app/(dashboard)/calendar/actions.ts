@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { sendEmail, eventEmail } from "@/lib/email"
+import { sendPushToUsers } from "@/lib/push"
 
 export async function createEvent(formData: FormData) {
   const supabase = await createClient()
@@ -43,31 +44,31 @@ export async function createEvent(formData: FormData) {
     portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
   })
 
+  const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+
   if (!is_public && invited.length > 0) {
     await supabase.from("event_invitations").insert(
       invited.map((uid) => ({ event_id: event.id, user_id: uid }))
     )
-    // email the invitees
     const { data: inviteeProfiles } = await supabase
       .from("profiles")
-      .select("email")
+      .select("id, email, push_notifications_enabled")
       .in("id", invited)
-      .not("email", "is", null)
-    const inviteeEmails = (inviteeProfiles ?? []).map((p) => p.email!).filter((e) => e !== creator?.email)
-    if (inviteeEmails.length > 0) {
-      sendEmail(inviteeEmails, `Invitasjon: ${title}`, emailHtml)
-    }
+    const invitees = (inviteeProfiles ?? []).filter((p) => p.email !== creator?.email)
+    const inviteeEmails = invitees.map((p) => p.email).filter(Boolean) as string[]
+    if (inviteeEmails.length > 0) sendEmail(inviteeEmails, `Invitasjon: ${title}`, emailHtml)
+    const pushIds = invitees.filter((p) => p.push_notifications_enabled).map((p) => p.id)
+    if (pushIds.length > 0) sendPushToUsers(pushIds, `Invitasjon: ${title}`, `${creator?.full_name ?? "En beboer"} har invitert deg`, `${portalUrl}/calendar`)
   } else if (is_public) {
-    // notify all approved users except the creator
     const { data: allProfiles } = await supabase
       .from("profiles")
-      .select("email")
+      .select("id, email, push_notifications_enabled")
       .eq("is_approved", true)
-      .not("email", "is", null)
-    const publicEmails = (allProfiles ?? []).map((p) => p.email!).filter((e) => e !== creator?.email)
-    if (publicEmails.length > 0) {
-      sendEmail(publicEmails, `Ny hendelse: ${title}`, emailHtml)
-    }
+    const others = (allProfiles ?? []).filter((p) => p.email !== creator?.email)
+    const publicEmails = others.map((p) => p.email).filter(Boolean) as string[]
+    if (publicEmails.length > 0) sendEmail(publicEmails, `Ny hendelse: ${title}`, emailHtml)
+    const pushIds = others.filter((p) => p.push_notifications_enabled).map((p) => p.id)
+    if (pushIds.length > 0) sendPushToUsers(pushIds, `Ny hendelse: ${title}`, `${creator?.full_name ?? "En beboer"} har lagt til en hendelse`, `${portalUrl}/calendar`)
   }
 
   revalidatePath("/calendar")

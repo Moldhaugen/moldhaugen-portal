@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Loader2 } from "lucide-react"
+import { PushSubscribeButton } from "@/components/push/push-subscribe-button"
 import type { Profile } from "@/types"
 
 type Props = { profile: Profile | null; email: string }
@@ -153,8 +154,8 @@ export function ProfileForm({ profile, email }: Props) {
               <Input id="email" name="email" type="email" defaultValue={currentEmail} />
               <p className="text-xs text-muted-foreground">En bekreftelseslenke sendes til ny adresse</p>
             </div>
-            <div className="space-y-2">
-              <Label>Varslinger</Label>
+            <div className="space-y-3">
+              <Label>E-postvarsler</Label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -167,6 +168,22 @@ export function ProfileForm({ profile, email }: Props) {
                   <p className="text-xs text-muted-foreground">Motta e-post ved nye innlegg</p>
                 </div>
               </label>
+            </div>
+            <div className="space-y-3">
+              <Label>Push-varsler</Label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="push_notifications_enabled"
+                  defaultChecked={profile?.push_notifications_enabled ?? true}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <div>
+                  <p className="text-sm">Aktiver push-varsler</p>
+                  <p className="text-xs text-muted-foreground">Varsler for nye innlegg, hendelser, oppgaver og kunngjøringer</p>
+                </div>
+              </label>
+              <PushSubscribeButton />
             </div>
             <Button type="submit" disabled={profileLoading}>
               {profileLoading ? "Lagrer…" : "Lagre endringer"}

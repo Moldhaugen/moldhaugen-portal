@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { sendEmail, bulletinPostEmail } from "@/lib/email"
+import { sendPushToUsers } from "@/lib/push"
 
 export async function createPost(fd: FormData) {
   const supabase = await createClient()
@@ -24,16 +25,27 @@ export async function createPost(fd: FormData) {
 
   const { data: recipients } = await supabase
     .from("profiles")
-    .select("email")
+    .select("id, email, email_bulletin_notifications, push_notifications_enabled")
     .eq("is_approved", true)
-    .eq("email_bulletin_notifications", true)
     .neq("id", user.id)
 
-  if (recipients && recipients.length > 0) {
-    const emails = recipients.map((r) => r.email).filter(Boolean) as string[]
-    const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
-    const authorName = poster?.full_name ?? poster?.email ?? "En beboer"
-    await sendEmail(emails, `Nytt innlegg: ${title}`, bulletinPostEmail({ postTitle: title, authorName, portalUrl }))
+  const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  const authorName = poster?.full_name ?? poster?.email ?? "En beboer"
+
+  if (recipients) {
+    const emailRecipients = recipients.filter((r) => r.email_bulletin_notifications && r.email)
+    if (emailRecipients.length > 0) {
+      await sendEmail(
+        emailRecipients.map((r) => r.email!),
+        `Nytt innlegg: ${title}`,
+        bulletinPostEmail({ postTitle: title, authorName, portalUrl }),
+      )
+    }
+
+    const pushRecipients = recipients.filter((r) => r.push_notifications_enabled).map((r) => r.id)
+    if (pushRecipients.length > 0) {
+      sendPushToUsers(pushRecipients, `Nytt innlegg: ${title}`, `${authorName}: ${title}`, `${portalUrl}/oppslagstavle`)
+    }
   }
 
   revalidatePath("/oppslagstavle")

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { MobileProfileMenu } from "@/components/layout/mobile-profile-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { PushInit } from "@/components/push/push-init"
 
 const navItems = [
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
@@ -144,6 +145,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </nav>
 
       <main className="flex-1 overflow-auto bg-background md:pt-0 pt-14 pb-16 md:pb-0">
+        <PushInit />
         {children}
       </main>
     </div>
