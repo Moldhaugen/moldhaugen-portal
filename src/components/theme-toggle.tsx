@@ -18,7 +18,7 @@ export function ThemeToggle({ className, style }: Props) {
   return (
     <button
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      title={resolvedTheme === "dark" ? "Bytt til lyst modus" : "Bytt til mørkt modus"}
+      title={resolvedTheme === "dark" ? "Lyst tema" : "Mørkt tema"}
       className={className}
       style={style}
     >

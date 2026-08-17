@@ -72,7 +72,7 @@ export function MobileProfileMenu({ displayName, initials, avatarUrl, isAdmin }:
               {resolvedTheme === "dark"
                 ? <Sun className="h-4 w-4 text-muted-foreground" />
                 : <Moon className="h-4 w-4 text-muted-foreground" />}
-              {resolvedTheme === "dark" ? "Lyst modus" : "Mørkt modus"}
+              {resolvedTheme === "dark" ? "Lyst tema" : "Mørkt tema"}
             </button>
           </div>
 
