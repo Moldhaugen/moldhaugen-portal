@@ -84,13 +84,13 @@ export async function addAssignment(formData: FormData) {
   // send email notification to assigned user (best-effort)
   const [planRes, assigneeRes, assignerRes] = await Promise.all([
     supabase.from("maintenance_plans").select("title").eq("id", plan_id).single(),
-    supabase.from("profiles").select("email, full_name, push_notifications_enabled").eq("id", user_id).single(),
+    supabase.from("profiles").select("email, full_name, email_maintenance_notifications, push_notifications_enabled").eq("id", user_id).single(),
     supabase.from("profiles").select("full_name").eq("id", user.id).single(),
   ])
   if (planRes.data) {
     const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
     const assignerName = assignerRes.data?.full_name ?? "En administrator"
-    if (assigneeRes.data?.email) {
+    if (assigneeRes.data?.email && assigneeRes.data?.email_maintenance_notifications) {
       const html = assignmentEmail({
         planTitle: planRes.data.title,
         assignerName,

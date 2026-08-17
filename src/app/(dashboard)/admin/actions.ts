@@ -111,7 +111,7 @@ export async function sendAnnouncement(formData: FormData) {
 
   const { data: recipients } = await supabase
     .from("profiles")
-    .select("id, email, push_notifications_enabled")
+    .select("id, email, email_announcement_notifications, push_notifications_enabled")
     .eq("is_approved", true)
 
   if (!recipients || recipients.length === 0) return { error: "Ingen mottakere funnet" }
@@ -119,7 +119,7 @@ export async function sendAnnouncement(formData: FormData) {
   const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
   const senderName = sender?.full_name ?? "Administrator"
 
-  const emails = recipients.map((r) => r.email).filter(Boolean) as string[]
+  const emails = recipients.filter((r) => r.email_announcement_notifications).map((r) => r.email).filter(Boolean) as string[]
   if (emails.length > 0) {
     await sendEmail(emails, subject, announcementEmail({ subject, body, senderName, portalUrl }))
   }

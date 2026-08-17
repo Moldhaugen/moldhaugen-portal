@@ -156,18 +156,25 @@ export function ProfileForm({ profile, email }: Props) {
             </div>
             <div className="space-y-3">
               <Label>E-postvarsler</Label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="email_bulletin_notifications"
-                  defaultChecked={profile?.email_bulletin_notifications ?? true}
-                  className="h-4 w-4 rounded border-input accent-primary"
-                />
-                <div>
-                  <p className="text-sm">Oppslagstavle</p>
-                  <p className="text-xs text-muted-foreground">Motta e-post ved nye innlegg</p>
-                </div>
-              </label>
+              {[
+                { name: "email_bulletin_notifications",     checked: profile?.email_bulletin_notifications     ?? true, label: "Oppslagstavle",   desc: "Nye innlegg" },
+                { name: "email_event_notifications",        checked: profile?.email_event_notifications        ?? true, label: "Kalender",         desc: "Nye hendelser og invitasjoner" },
+                { name: "email_maintenance_notifications",  checked: profile?.email_maintenance_notifications  ?? true, label: "Vedlikehold",      desc: "Når du tildeles en oppgave" },
+                { name: "email_announcement_notifications", checked: profile?.email_announcement_notifications ?? true, label: "Kunngjøringer",    desc: "Meldinger fra administrator" },
+              ].map(({ name, checked, label, desc }) => (
+                <label key={name} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name={name}
+                    defaultChecked={checked}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <div>
+                    <p className="text-sm">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                </label>
+              ))}
             </div>
             <div className="space-y-3">
               <Label>Push-varsler</Label>

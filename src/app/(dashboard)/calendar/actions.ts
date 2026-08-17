@@ -52,20 +52,20 @@ export async function createEvent(formData: FormData) {
     )
     const { data: inviteeProfiles } = await supabase
       .from("profiles")
-      .select("id, email, push_notifications_enabled")
+      .select("id, email, email_event_notifications, push_notifications_enabled")
       .in("id", invited)
     const invitees = (inviteeProfiles ?? []).filter((p) => p.email !== creator?.email)
-    const inviteeEmails = invitees.map((p) => p.email).filter(Boolean) as string[]
+    const inviteeEmails = invitees.filter((p) => p.email_event_notifications).map((p) => p.email).filter(Boolean) as string[]
     if (inviteeEmails.length > 0) sendEmail(inviteeEmails, `Invitasjon: ${title}`, emailHtml)
     const pushIds = invitees.filter((p) => p.push_notifications_enabled).map((p) => p.id)
     if (pushIds.length > 0) sendPushToUsers(pushIds, `Invitasjon: ${title}`, `${creator?.full_name ?? "En beboer"} har invitert deg`, `${portalUrl}/calendar`)
   } else if (is_public) {
     const { data: allProfiles } = await supabase
       .from("profiles")
-      .select("id, email, push_notifications_enabled")
+      .select("id, email, email_event_notifications, push_notifications_enabled")
       .eq("is_approved", true)
     const others = (allProfiles ?? []).filter((p) => p.email !== creator?.email)
-    const publicEmails = others.map((p) => p.email).filter(Boolean) as string[]
+    const publicEmails = others.filter((p) => p.email_event_notifications).map((p) => p.email).filter(Boolean) as string[]
     if (publicEmails.length > 0) sendEmail(publicEmails, `Ny hendelse: ${title}`, emailHtml)
     const pushIds = others.filter((p) => p.push_notifications_enabled).map((p) => p.id)
     if (pushIds.length > 0) sendPushToUsers(pushIds, `Ny hendelse: ${title}`, `${creator?.full_name ?? "En beboer"} har lagt til en hendelse`, `${portalUrl}/calendar`)
