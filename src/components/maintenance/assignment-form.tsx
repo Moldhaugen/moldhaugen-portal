@@ -86,7 +86,10 @@ export function AssignmentForm({ planId, members }: Props) {
               </label>
             </div>
             {hasDate && (
-              <Input id="scheduled_date" name="scheduled_date" type="date" defaultValue={today} />
+              <div className="flex gap-2">
+                <Input id="scheduled_date" name="scheduled_date" type="date" defaultValue={today} className="flex-1" />
+                <Input name="scheduled_time" type="time" className="w-28" title="Tidspunkt (valgfritt)" />
+              </div>
             )}
           </div>
           <div className="space-y-2">

@@ -16,6 +16,7 @@ type Assignment = {
   id: string
   user_id: string
   scheduled_date: string | null
+  scheduled_time: string | null
   notes: string | null
 }
 
@@ -87,12 +88,22 @@ export function EditAssignmentForm({ assignment, members }: Props) {
               </label>
             </div>
             {hasDate && (
-              <Input
-                id="edit-date"
-                name="scheduled_date"
-                type="date"
-                defaultValue={assignment.scheduled_date ?? ""}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="edit-date"
+                  name="scheduled_date"
+                  type="date"
+                  defaultValue={assignment.scheduled_date ?? ""}
+                  className="flex-1"
+                />
+                <Input
+                  name="scheduled_time"
+                  type="time"
+                  defaultValue={assignment.scheduled_time?.substring(0, 5) ?? ""}
+                  className="w-28"
+                  title="Tidspunkt (valgfritt)"
+                />
+              </div>
             )}
           </div>
           <div className="space-y-2">

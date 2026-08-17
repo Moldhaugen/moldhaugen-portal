@@ -106,6 +106,28 @@ export function eventEmail(opts: {
 <a href="${opts.portalUrl}/calendar" class="btn">Se i kalender</a>`, opts.portalUrl)
 }
 
+export function reminderEmail(opts: {
+  planTitle: string
+  scheduledDate: string
+  scheduledTime: string | null
+  isToday: boolean
+  portalUrl: string
+}) {
+  const dateStr = new Date(opts.scheduledDate + "T12:00:00Z").toLocaleDateString("nb-NO", { weekday: "long", day: "numeric", month: "long" })
+  const timeStr = opts.scheduledTime ? opts.scheduledTime.substring(0, 5) : null
+
+  return base(`
+<h2>${opts.isToday ? "Oppgave forfaller i dag" : "Påminnelse: Oppgave forfaller i morgen"}</h2>
+<p>Du har en vedlikeholdsoppgave som forfaller ${opts.isToday ? "i dag" : "i morgen"}.</p>
+<div class="detail">
+  <p class="label">Oppgave</p>
+  <p><strong>${opts.planTitle}</strong></p>
+  <p class="label" style="margin-top:8px">Dato</p>
+  <p>${dateStr}${timeStr ? ` kl. ${timeStr}` : ""}</p>
+</div>
+<a href="${opts.portalUrl}/maintenance" class="btn">Se oppgaven</a>`, opts.portalUrl)
+}
+
 export function bulletinPostEmail(opts: { postTitle: string; authorName: string; portalUrl: string }) {
   return base(`
 <h2>Nytt innlegg på oppslagstavlen</h2>
