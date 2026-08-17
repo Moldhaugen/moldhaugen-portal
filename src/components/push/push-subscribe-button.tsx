@@ -16,6 +16,7 @@ type State = "unsupported" | "loading" | "denied" | "subscribed" | "unsubscribed
 export function PushSubscribeButton() {
   const [state, setState] = useState<State>("loading")
   const [reg, setReg] = useState<ServiceWorkerRegistration | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -32,34 +33,53 @@ export function PushSubscribeButton() {
       } else {
         setState("unsubscribed")
       }
-    }).catch(() => setState("unsupported"))
+    }).catch((err) => {
+      console.error("SW registration failed:", err)
+      setState("unsupported")
+    })
   }, [])
 
   async function subscribe() {
-    if (!reg) return
+    if (!reg) {
+      setError("Tjenesteworker ikke tilgjengelig — prøv å laste siden på nytt.")
+      return
+    }
+    setError(null)
     setState("loading")
     try {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) throw new Error("VAPID public key mangler — sjekk miljøvariabler i Vercel.")
+
       const permission = await Notification.requestPermission()
-      if (permission !== "granted") { setState("denied"); return }
+      if (permission !== "granted") {
+        setState("denied")
+        return
+      }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       })
 
-      await fetch("/api/push/subscribe", {
+      const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sub.toJSON()),
       })
+      if (!res.ok) throw new Error(`API svarte ${res.status}`)
+
       setState("subscribed")
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error("Push subscribe failed:", msg)
+      setError(msg)
       setState("unsubscribed")
     }
   }
 
   async function unsubscribe() {
     if (!reg) return
+    setError(null)
     setState("loading")
     try {
       const sub = await reg.pushManager.getSubscription()
@@ -72,7 +92,9 @@ export function PushSubscribeButton() {
         await sub.unsubscribe()
       }
       setState("unsubscribed")
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg)
       setState("subscribed")
     }
   }
@@ -80,7 +102,7 @@ export function PushSubscribeButton() {
   if (state === "unsupported") return null
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {state === "subscribed" ? (
         <Button type="button" variant="outline" size="sm" onClick={unsubscribe}>
           <BellOff className="h-4 w-4" />
@@ -101,7 +123,10 @@ export function PushSubscribeButton() {
         </Button>
       )}
       {state === "denied" && (
-        <p className="text-xs text-muted-foreground">Tillat varsler i nettleserinnstillingene for å aktivere.</p>
+        <p className="text-xs text-muted-foreground">Tillat varsler i Chrome-innstillingene for å aktivere.</p>
+      )}
+      {error && (
+        <p className="text-xs text-destructive">{error}</p>
       )}
     </div>
   )

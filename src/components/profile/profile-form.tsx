@@ -183,12 +183,16 @@ export function ProfileForm({ profile, email }: Props) {
                   <p className="text-xs text-muted-foreground">Varsler for nye innlegg, hendelser, oppgaver og kunngjøringer</p>
                 </div>
               </label>
-              <PushSubscribeButton />
             </div>
             <Button type="submit" disabled={profileLoading}>
               {profileLoading ? "Lagrer…" : "Lagre endringer"}
             </Button>
           </form>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-sm font-medium mb-2">Denne enheten</p>
+            <PushSubscribeButton />
+          </div>
         </CardContent>
       </Card>
     </div>
