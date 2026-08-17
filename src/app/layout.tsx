@@ -9,8 +9,6 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "Moldhaugen Portal",
   description: "Nabolagsportalen for Moldhaugen Borettslag",
-  manifest: "/manifest.json",
-  themeColor: "#18181b",
   appleWebApp: { capable: true, title: "Moldhaugen", statusBarStyle: "black-translucent" },
 }
 

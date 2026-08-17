@@ -4,8 +4,8 @@ self.addEventListener("push", (event) => {
     (async () => {
       await self.registration.showNotification(data.title ?? "Moldhaugen", {
         body: data.body ?? "",
-        icon: "/icon.svg",
-        badge: "/icon.svg",
+        icon: "/icon.png",
+        badge: "/icon.png",
         data: { url: data.url ?? "/" },
       })
       const all = await self.registration.getNotifications()
