@@ -11,7 +11,8 @@ import { nb } from "date-fns/locale"
 export default async function ThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
   if (!user) redirect("/login")
 
   const { data: profile } = await supabase

@@ -4,14 +4,11 @@ import { Users, Phone, Mail } from "lucide-react"
 
 export default async function BeboerePage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
-
-  const { data: residents } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, phone_number, unit_number")
-    .eq("is_approved", true)
-    .order("full_name")
+  const [{ data: { session } }, { data: residents }] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.from("profiles").select("id, full_name, email, phone_number, unit_number").eq("is_approved", true).order("full_name"),
+  ])
+  if (!session?.user) redirect("/login")
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

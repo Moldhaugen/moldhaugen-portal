@@ -8,20 +8,14 @@ const CATEGORIES = ["Tjenester", "Kontakter", "Nødhjelp", "Annet"]
 
 export default async function InfoPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [{ data: { session } }, { data: entries }] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.from("info_entries").select("*, creator:profiles!info_entries_created_by_fkey(id, full_name, email)").order("category").order("created_at", { ascending: false }),
+  ])
+  const user = session?.user
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single()
-
-  const { data: entries } = await supabase
-    .from("info_entries")
-    .select("*, creator:profiles!info_entries_created_by_fkey(id, full_name, email)")
-    .order("category")
-    .order("created_at", { ascending: false })
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
 
   const grouped: Record<string, typeof entries> = {}
   for (const cat of CATEGORIES) {
