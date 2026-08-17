@@ -121,6 +121,7 @@ export async function sendAnnouncement(formData: FormData) {
     subject,
     body,
     senderName: sender?.full_name ?? "Administrator",
+    portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
   })
   await sendEmail(emails, subject, html)
 

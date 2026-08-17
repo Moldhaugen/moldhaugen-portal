@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { sendEmail, bulletinPostEmail } from "@/lib/email"
 
 export async function createPost(fd: FormData) {
   const supabase = await createClient()
@@ -14,6 +15,27 @@ export async function createPost(fd: FormData) {
 
   const { error } = await supabase.from("bulletin_posts").insert({ title, body, created_by: user.id })
   if (error) return { error: "Kunne ikke opprette innlegget" }
+
+  const { data: poster } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", user.id)
+    .single()
+
+  const { data: recipients } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("is_approved", true)
+    .eq("email_bulletin_notifications", true)
+    .neq("id", user.id)
+
+  if (recipients && recipients.length > 0) {
+    const emails = recipients.map((r) => r.email).filter(Boolean) as string[]
+    const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+    const authorName = poster?.full_name ?? poster?.email ?? "En beboer"
+    await sendEmail(emails, `Nytt innlegg: ${title}`, bulletinPostEmail({ postTitle: title, authorName, portalUrl }))
+  }
+
   revalidatePath("/oppslagstavle")
 }
 

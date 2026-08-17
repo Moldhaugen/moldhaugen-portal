@@ -10,15 +10,25 @@ export async function updateProfile(formData: FormData) {
 
   const full_name = formData.get("full_name") as string
   const unit_number = formData.get("unit_number") as string
+  const phone_number = (formData.get("phone_number") as string)?.trim() || null
+  const email_bulletin_notifications = formData.get("email_bulletin_notifications") === "on"
+  const newEmail = (formData.get("email") as string)?.trim()
+
+  let emailConfirmationPending = false
+  if (newEmail && newEmail !== user.email) {
+    const { error: emailError } = await supabase.auth.updateUser({ email: newEmail })
+    if (emailError) return { error: emailError.message }
+    emailConfirmationPending = true
+  }
 
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name, unit_number, updated_at: new Date().toISOString() })
+    .update({ full_name, unit_number, phone_number, email_bulletin_notifications, updated_at: new Date().toISOString() })
     .eq("id", user.id)
 
   if (error) return { error: error.message }
   revalidatePath("/profile")
-  return { success: true }
+  return { success: true, emailConfirmationPending }
 }
 
 export async function uploadAvatar(formData: FormData) {

@@ -20,6 +20,7 @@ export function ProfileForm({ profile, email }: Props) {
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [avatarMsg, setAvatarMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const currentEmail = profile?.email ?? email
 
   const displayName = profile?.full_name ?? email
   const initials = displayName
@@ -34,9 +35,13 @@ export function ProfileForm({ profile, email }: Props) {
     setProfileMsg(null)
     setProfileLoading(true)
     const result = await updateProfile(new FormData(e.currentTarget))
-    setProfileMsg(result.error
-      ? { type: "error", text: result.error }
-      : { type: "success", text: "Profil oppdatert!" })
+    if (result.error) {
+      setProfileMsg({ type: "error", text: result.error })
+    } else if (result.emailConfirmationPending) {
+      setProfileMsg({ type: "success", text: "Profil oppdatert! En bekreftelseslenke er sendt til den nye e-postadressen." })
+    } else {
+      setProfileMsg({ type: "success", text: "Profil oppdatert!" })
+    }
     setProfileLoading(false)
   }
 
@@ -134,9 +139,34 @@ export function ProfileForm({ profile, email }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label>E-post</Label>
-              <Input value={email} disabled className="opacity-60" />
-              <p className="text-xs text-muted-foreground">E-post kan ikke endres her</p>
+              <Label htmlFor="unit_number">Telefon</Label>
+              <Input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                defaultValue={profile?.phone_number ?? ""}
+                placeholder="f.eks. 90 12 34 56"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">E-post</Label>
+              <Input id="email" name="email" type="email" defaultValue={currentEmail} />
+              <p className="text-xs text-muted-foreground">En bekreftelseslenke sendes til ny adresse</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Varslinger</Label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="email_bulletin_notifications"
+                  defaultChecked={profile?.email_bulletin_notifications ?? true}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <div>
+                  <p className="text-sm">Oppslagstavle</p>
+                  <p className="text-xs text-muted-foreground">Motta e-post ved nye innlegg</p>
+                </div>
+              </label>
             </div>
             <Button type="submit" disabled={profileLoading}>
               {profileLoading ? "Lagrer…" : "Lagre endringer"}

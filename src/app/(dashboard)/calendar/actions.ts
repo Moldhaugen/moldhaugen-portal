@@ -40,6 +40,7 @@ export async function createEvent(formData: FormData) {
     description: description || null,
     isPublic: is_public,
     creatorName: creator?.full_name ?? "En beboer",
+    portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
   })
 
   if (!is_public && invited.length > 0) {

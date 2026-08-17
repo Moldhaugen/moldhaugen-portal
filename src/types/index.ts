@@ -6,6 +6,8 @@ export type Profile = {
   unit_number: string | null
   is_approved: boolean
   is_admin: boolean
+  email_bulletin_notifications: boolean
+  phone_number: string | null
   created_at: string
   updated_at: string
 }

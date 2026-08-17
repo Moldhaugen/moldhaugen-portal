@@ -92,6 +92,7 @@ export async function addAssignment(formData: FormData) {
       assignerName: assignerRes.data?.full_name ?? "En administrator",
       scheduledDate: scheduled_date || null,
       notes: notes || null,
+      portalUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
     })
     sendEmail(assigneeRes.data.email, `Vedlikeholdsoppgave: ${planRes.data.title}`, html)
   }
