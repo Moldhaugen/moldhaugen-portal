@@ -175,26 +175,52 @@ export async function updatePlan(id: string, formData: FormData) {
 
     const { data: assigned } = await supabase
       .from("maintenance_assignments")
-      .select("scheduled_date")
+      .select("id, scheduled_date")
       .eq("plan_id", id)
       .not("user_id", "is", null)
 
-    const slotDates = generateSlotDates(start_date, end_date, recurrence).filter((slotDate) => {
+    const newSlotDates = generateSlotDates(start_date, end_date, recurrence)
+    const usedAssignmentIds = new Set<string>()
+    const openSlotDates: string[] = []
+
+    for (const slotDate of newSlotDates) {
       const slotStart = new Date(slotDate + "T00:00:00")
       const slotEnd = new Date(slotStart)
       if (recurrence === "weekly") slotEnd.setDate(slotEnd.getDate() + 6)
       else if (recurrence === "biweekly") slotEnd.setDate(slotEnd.getDate() + 13)
       else if (recurrence === "monthly") slotEnd.setMonth(slotEnd.getMonth() + 1)
-      return !(assigned ?? []).some((a) => {
-        if (!a.scheduled_date) return false
+
+      const overlapping = (assigned ?? []).filter((a) => {
+        if (!a.scheduled_date || usedAssignmentIds.has(a.id)) return false
         const d = new Date(a.scheduled_date + "T00:00:00")
         return d >= slotStart && d <= slotEnd
       })
-    })
 
-    if (slotDates.length > 0) {
+      if (overlapping.length > 0) {
+        await supabase
+          .from("maintenance_assignments")
+          .update({ scheduled_date: slotDate, updated_at: new Date().toISOString() })
+          .eq("id", overlapping[0].id)
+        usedAssignmentIds.add(overlapping[0].id)
+        for (const extra of overlapping.slice(1)) {
+          await supabase.from("maintenance_assignments").delete().eq("id", extra.id)
+          usedAssignmentIds.add(extra.id)
+        }
+      } else {
+        openSlotDates.push(slotDate)
+      }
+    }
+
+    const unhandledIds = (assigned ?? [])
+      .filter((a) => !usedAssignmentIds.has(a.id))
+      .map((a) => a.id)
+    if (unhandledIds.length > 0) {
+      await supabase.from("maintenance_assignments").delete().in("id", unhandledIds)
+    }
+
+    if (openSlotDates.length > 0) {
       await supabase.from("maintenance_assignments").insert(
-        slotDates.map((date) => ({ plan_id: id, user_id: null, scheduled_date: date }))
+        openSlotDates.map((date) => ({ plan_id: id, user_id: null, scheduled_date: date }))
       )
     }
   }
