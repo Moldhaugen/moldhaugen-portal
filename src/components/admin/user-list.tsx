@@ -172,21 +172,17 @@ export function AdminUserList({ pending, approved, currentUserId }: Props) {
       )}
 
       <div className="space-y-8">
-        {/* Pending */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              Venter på godkjenning
-              {pending.length > 0 && (
+        {/* Pending — only shown when there are pending users */}
+        {pending.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                Venter på godkjenning
                 <Badge variant="warning" className="text-xs">{pending.length}</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {pending.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ingen ventende brukere.</p>
-            ) : (
-              pending.map((u) => (
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {pending.map((u) => (
                 <UserCard
                   key={u.id}
                   user={u}
@@ -196,10 +192,10 @@ export function AdminUserList({ pending, approved, currentUserId }: Props) {
                   onReject={() => handle(() => rejectUser(u.id))}
                   onDelete={() => handleDelete(u)}
                 />
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Approved */}
         <Card>
