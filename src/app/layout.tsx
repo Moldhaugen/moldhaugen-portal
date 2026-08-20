@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Moldhaugen Portal",
   description: "Nabolagsportalen for Moldhaugen Borettslag",
   appleWebApp: { capable: true, title: "Moldhaugen", statusBarStyle: "black-translucent" },
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
