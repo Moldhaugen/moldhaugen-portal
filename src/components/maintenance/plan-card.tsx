@@ -82,54 +82,56 @@ function OpenSlotRow({
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <CalendarDays className="h-3 w-3 shrink-0" />
-          <span>{formatSlotRange(assignment.scheduled_date, planRecurrence)}</span>
+    <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <CalendarDays className="h-3 w-3 shrink-0" />
+            <span>{formatSlotRange(assignment.scheduled_date, planRecurrence)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs px-2"
+            onClick={handleClaim}
+            disabled={claiming}
+          >
+            {claiming ? "…" : "Ta vakt"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            onClick={() => deleteAssignment(assignment.id)}
+            title="Slett vakt"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-        {isAdmin && (
-          <>
-            <Select value={assignUserId} onValueChange={setAssignUserId}>
-              <SelectTrigger className="h-7 text-xs w-36">
-                <SelectValue placeholder="Tildel til…" />
-              </SelectTrigger>
-              <SelectContent>
-                {members.map((m) => (
-                  <SelectItem key={m.id} value={m.id} className="text-xs">
-                    {m.full_name ?? m.email}{m.unit_number && ` (${m.unit_number})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {assignUserId && (
-              <Button size="sm" className="h-7 text-xs px-2" onClick={handleAssign} disabled={assigning}>
-                {assigning ? "…" : "Tildel"}
-              </Button>
-            )}
-          </>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs px-2"
-          onClick={handleClaim}
-          disabled={claiming}
-        >
-          {claiming ? "…" : "Ta vakt"}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-          onClick={() => deleteAssignment(assignment.id)}
-          title="Slett vakt"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      {isAdmin && (
+        <div className="flex items-center gap-1.5">
+          <Select value={assignUserId} onValueChange={setAssignUserId}>
+            <SelectTrigger className="h-7 text-xs flex-1">
+              <SelectValue placeholder="Tildel til…" />
+            </SelectTrigger>
+            <SelectContent>
+              {members.map((m) => (
+                <SelectItem key={m.id} value={m.id} className="text-xs">
+                  {m.full_name ?? m.email}{m.unit_number && ` (${m.unit_number})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {assignUserId && (
+            <Button size="sm" className="h-7 text-xs px-2 shrink-0" onClick={handleAssign} disabled={assigning}>
+              {assigning ? "…" : "Tildel"}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

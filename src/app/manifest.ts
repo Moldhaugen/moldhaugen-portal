@@ -5,13 +5,13 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Moldhaugen Portal",
     short_name: "Moldhaugen",
     description: "Nabolagsportalen for Moldhaugen Borettslag",
-    start_url: "/",
+    start_url: "/calendar",
     display: "standalone",
-    background_color: "#18181b",
-    theme_color: "#18181b",
+    orientation: "portrait",
+    background_color: "#1e293b",
+    theme_color: "#1e293b",
     icons: [
-      { src: "/icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
     ],
   }
 }
