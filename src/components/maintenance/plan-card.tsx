@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AssignmentForm } from "./assignment-form"
 import { EditPlanForm } from "./edit-plan-form"
 import { EditAssignmentForm } from "./edit-assignment-form"
-import { Trash2, CalendarDays, RepeatIcon, CheckCircle2, RotateCcw } from "lucide-react"
+import { Trash2, CalendarDays, RepeatIcon, CheckCircle2 } from "lucide-react"
 import type { MaintenancePlan, MaintenanceAssignment, ProfileSummary } from "@/types"
 import { format, addDays, addMonths } from "date-fns"
 import { nb } from "date-fns/locale"
@@ -237,23 +237,18 @@ export function PlanCard({ plan, members, currentUserId, isAdmin }: Props) {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0">
-                  {(a.user_id === currentUserId || isAdmin) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      title="Gi tilbake"
-                      onClick={() => releaseSlot(a.id)}
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                    </Button>
-                  )}
                   <EditAssignmentForm assignment={a} members={members} />
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteAssignment(a.id)}
+                    onClick={() => {
+                      const name = a.profile?.full_name ?? a.profile?.email ?? "denne personen"
+                      const confirmed = confirm(
+                        `Vakten til ${name} er ikke fullført.\n\nDen vil bli gjort ledig igjen slik at andre beboere kan ta den. Vil du fortsette?`
+                      )
+                      if (confirmed) releaseSlot(a.id)
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
