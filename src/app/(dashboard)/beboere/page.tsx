@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Users, Phone, Mail } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default async function BeboerePage() {
   const supabase = await createClient()
   const [{ data: { session } }, { data: residents }] = await Promise.all([
     supabase.auth.getSession(),
-    supabase.from("profiles").select("id, full_name, email, phone_number, unit_number").eq("is_approved", true).order("full_name"),
+    supabase.from("profiles").select("id, full_name, email, phone_number, unit_number, avatar_url").eq("is_approved", true).order("full_name"),
   ])
   if (!session?.user) redirect("/login")
 
@@ -25,14 +26,12 @@ export default async function BeboerePage() {
       <div className="divide-y divide-border rounded-xl border border-border overflow-hidden">
         {residents?.map((r) => (
           <div key={r.id} className="flex items-center gap-4 px-4 py-3 bg-card hover:bg-muted/40 transition-colors">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
-              {(r.full_name ?? r.email ?? "?")
-                .split(" ")
-                .map((n: string) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
-            </div>
+            <Avatar className="h-9 w-9 shrink-0">
+              {r.avatar_url && <AvatarImage src={r.avatar_url} alt={r.full_name ?? ""} />}
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                {(r.full_name ?? r.email ?? "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm text-foreground truncate">
                 {r.full_name ?? <span className="text-muted-foreground italic">Ukjent navn</span>}
