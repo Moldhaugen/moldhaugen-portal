@@ -5,6 +5,30 @@ import { revalidatePath } from "next/cache"
 import { sendEmail, assignmentEmail } from "@/lib/email"
 import { sendPushToUsers } from "@/lib/push"
 
+function generateSlotDates(startDate: string, endDate: string | null, recurrence: string): string[] {
+  if (recurrence === "once" || recurrence === "custom") return []
+
+  const toStr = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+
+  const slots: string[] = []
+  const cur = new Date(startDate + "T00:00:00")
+  const end = endDate ? new Date(endDate + "T00:00:00") : null
+
+  while (slots.length < 104) {
+    if (end && cur > end) break
+    slots.push(toStr(cur))
+    if (!end) break
+
+    if (recurrence === "weekly") cur.setDate(cur.getDate() + 7)
+    else if (recurrence === "biweekly") cur.setDate(cur.getDate() + 14)
+    else if (recurrence === "monthly") cur.setMonth(cur.getMonth() + 1)
+    else break
+  }
+
+  return slots
+}
+
 export async function createPlan(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,10 +37,114 @@ export async function createPlan(formData: FormData) {
   const title = formData.get("title") as string
   const description = formData.get("description") as string
   const recurrence = formData.get("recurrence") as string
+  const start_date = (formData.get("start_date") as string) || null
+  const end_date = (formData.get("end_date") as string) || null
+
+  const { data: plan, error } = await supabase
+    .from("maintenance_plans")
+    .insert({ title, description: description || null, recurrence, start_date, end_date, created_by: user.id })
+    .select("id")
+    .single()
+
+  if (error || !plan) return { error: error?.message ?? "Noe gikk galt" }
+
+  if (start_date) {
+    const slotDates = generateSlotDates(start_date, end_date, recurrence)
+    if (slotDates.length > 0) {
+      await supabase.from("maintenance_assignments").insert(
+        slotDates.map((date) => ({ plan_id: plan.id, user_id: null, scheduled_date: date }))
+      )
+    }
+  }
+
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
+export async function claimSlot(assignmentId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
 
   const { error } = await supabase
-    .from("maintenance_plans")
-    .insert({ title, description: description || null, recurrence, created_by: user.id })
+    .from("maintenance_assignments")
+    .update({ user_id: user.id, updated_at: new Date().toISOString() })
+    .eq("id", assignmentId)
+    .is("user_id", null)
+
+  if (error) return { error: error.message }
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
+export async function assignSlot(assignmentId: string, userId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  if (!profile?.is_admin) return { error: "Ingen tilgang" }
+
+  const { data: assignment } = await supabase
+    .from("maintenance_assignments")
+    .select("plan_id, scheduled_date, notes")
+    .eq("id", assignmentId)
+    .single()
+  if (!assignment) return { error: "Oppgaven finnes ikke" }
+
+  const { error } = await supabase
+    .from("maintenance_assignments")
+    .update({ user_id: userId, updated_at: new Date().toISOString() })
+    .eq("id", assignmentId)
+  if (error) return { error: error.message }
+
+  const [planRes, assigneeRes, assignerRes] = await Promise.all([
+    supabase.from("maintenance_plans").select("title").eq("id", assignment.plan_id).single(),
+    supabase.from("profiles").select("email, full_name, email_maintenance_notifications, push_notifications_enabled").eq("id", userId).single(),
+    supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+  ])
+  if (planRes.data) {
+    const portalUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+    const assignerName = assignerRes.data?.full_name ?? "En administrator"
+    if (assigneeRes.data?.email && assigneeRes.data?.email_maintenance_notifications) {
+      const html = assignmentEmail({
+        planTitle: planRes.data.title,
+        assignerName,
+        scheduledDate: assignment.scheduled_date,
+        notes: assignment.notes,
+        portalUrl,
+      })
+      sendEmail(assigneeRes.data.email, `Vedlikeholdsoppgave: ${planRes.data.title}`, html)
+    }
+    if (assigneeRes.data?.push_notifications_enabled) {
+      sendPushToUsers([userId], `Ny vedlikeholdsoppgave`, `${assignerName}: ${planRes.data.title}`, `${portalUrl}/maintenance`)
+    }
+  }
+
+  revalidatePath("/maintenance")
+  return { success: true }
+}
+
+export async function releaseSlot(assignmentId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: assignment } = await supabase
+    .from("maintenance_assignments")
+    .select("user_id")
+    .eq("id", assignmentId)
+    .single()
+
+  const { data: adminProfile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+
+  if (!assignment) return { error: "Oppgaven finnes ikke" }
+  if (assignment.user_id !== user.id && !adminProfile?.is_admin) return { error: "Ingen tilgang" }
+
+  const { error } = await supabase
+    .from("maintenance_assignments")
+    .update({ user_id: null, is_completed: false, updated_at: new Date().toISOString() })
+    .eq("id", assignmentId)
 
   if (error) return { error: error.message }
   revalidatePath("/maintenance")

@@ -11,8 +11,8 @@ import { PushInit } from "@/components/push/push-init"
 
 const navItems = [
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
-  { href: "/oppslagstavle", label: "Oppslagstavle", icon: Pin },
   { href: "/maintenance", label: "Vedlikehold", icon: Wrench },
+  { href: "/oppslagstavle", label: "Oppslagstavle", icon: Pin },
   { href: "/beboere", label: "Beboere", icon: Users },
   { href: "/info", label: "Nyttig info", icon: BookOpen },
 ]

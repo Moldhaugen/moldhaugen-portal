@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { createPlan } from "@/app/(dashboard)/maintenance/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,12 +23,42 @@ const DUGNAD_SUGGESTIONS = [
   "Rydde søppelrom",
 ]
 
+function countSlots(startDate: string, endDate: string, recurrence: string): number {
+  if (!startDate || recurrence === "once" || recurrence === "custom") return 0
+  let count = 0
+  const cur = new Date(startDate + "T00:00:00")
+  const end = endDate ? new Date(endDate + "T00:00:00") : null
+  while (count < 104) {
+    if (end && cur > end) break
+    count++
+    if (!end) break
+    if (recurrence === "weekly") cur.setDate(cur.getDate() + 7)
+    else if (recurrence === "biweekly") cur.setDate(cur.getDate() + 14)
+    else if (recurrence === "monthly") cur.setMonth(cur.getMonth() + 1)
+    else break
+  }
+  return count
+}
+
+const SHIFT_LABELS: Record<string, string> = {
+  weekly: "1 uke",
+  biweekly: "2 uker",
+  monthly: "1 måned",
+}
+
 export function PlanForm() {
   const [open, setOpen] = useState(false)
   const [recurrence, setRecurrence] = useState("weekly")
   const [title, setTitle] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const slotCount = useMemo(
+    () => countSlots(startDate, endDate, recurrence),
+    [startDate, endDate, recurrence]
+  )
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -43,6 +73,8 @@ export function PlanForm() {
       setOpen(false)
       setRecurrence("weekly")
       setTitle("")
+      setStartDate("")
+      setEndDate("")
     }
     setLoading(false)
   }
@@ -99,17 +131,55 @@ export function PlanForm() {
           </div>
 
           <div className="space-y-2">
-            <Label>Frekvens</Label>
+            <Label>Vaktlengde per person</Label>
             <Select value={recurrence} onValueChange={setRecurrence}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="once">Engangs</SelectItem>
-                <SelectItem value="weekly">Ukentlig</SelectItem>
-                <SelectItem value="biweekly">Annenhver uke</SelectItem>
-                <SelectItem value="monthly">Månedlig</SelectItem>
-                <SelectItem value="custom">Tilpasset</SelectItem>
+                <SelectItem value="weekly">1 uke</SelectItem>
+                <SelectItem value="biweekly">2 uker</SelectItem>
+                <SelectItem value="monthly">1 måned</SelectItem>
+                <SelectItem value="custom">Tilpasset (manuell)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>
+              Planperiode{" "}
+              <span className="text-muted-foreground font-normal">(valgfritt)</span>
+            </Label>
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1">
+                <span className="text-xs text-muted-foreground">Fra</span>
+                <Input
+                  name="start_date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <span className="text-xs text-muted-foreground">Til</span>
+                <Input
+                  name="end_date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                />
+              </div>
+            </div>
+            {startDate && slotCount > 0 ? (
+              <p className="text-xs text-muted-foreground">
+                → Oppretter {slotCount} ledige vakt{slotCount !== 1 ? "er" : ""}
+                {SHIFT_LABELS[recurrence] ? ` à ${SHIFT_LABELS[recurrence]}` : ""}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Uten datoer: legg til oppgaver manuelt etter opprettelse
+              </p>
+            )}
           </div>
 
           <DialogFooter>

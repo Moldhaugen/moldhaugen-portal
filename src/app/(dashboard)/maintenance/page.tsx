@@ -52,6 +52,7 @@ export default async function MaintenancePage() {
         completedPlans={completedPlans}
         members={members}
         currentUserId={user.id}
+        isAdmin={!!profileRes.data?.is_admin}
       />
 
       {/* Suggestions section */}

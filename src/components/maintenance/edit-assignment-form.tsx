@@ -14,7 +14,7 @@ import type { ProfileSummary } from "@/types"
 
 type Assignment = {
   id: string
-  user_id: string
+  user_id: string | null
   scheduled_date: string | null
   scheduled_time: string | null
   notes: string | null
@@ -24,7 +24,7 @@ type Props = { assignment: Assignment; members: ProfileSummary[] }
 
 export function EditAssignmentForm({ assignment, members }: Props) {
   const [open, setOpen] = useState(false)
-  const [userId, setUserId] = useState(assignment.user_id)
+  const [userId, setUserId] = useState(assignment.user_id ?? "")
   const [hasDate, setHasDate] = useState(!!assignment.scheduled_date)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

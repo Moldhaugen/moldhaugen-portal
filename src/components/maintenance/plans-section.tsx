@@ -12,9 +12,10 @@ type Props = {
   completedPlans: MaintenancePlan[]
   members: ProfileSummary[]
   currentUserId: string
+  isAdmin: boolean
 }
 
-export function PlansSection({ activePlans, completedPlans, members, currentUserId }: Props) {
+export function PlansSection({ activePlans, completedPlans, members, currentUserId, isAdmin }: Props) {
   const [showCompleted, setShowCompleted] = useState(false)
 
   return (
@@ -55,7 +56,7 @@ export function PlansSection({ activePlans, completedPlans, members, currentUser
       {activePlans.length > 0 ? (
         <div className="space-y-6">
           {activePlans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} />
+            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} isAdmin={isAdmin} />
           ))}
         </div>
       ) : (
@@ -74,7 +75,7 @@ export function PlansSection({ activePlans, completedPlans, members, currentUser
             Fullførte planer ({completedPlans.length})
           </p>
           {completedPlans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} />
+            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} isAdmin={isAdmin} />
           ))}
         </div>
       )}

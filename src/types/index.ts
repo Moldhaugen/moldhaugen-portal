@@ -48,6 +48,8 @@ export type MaintenancePlan = {
   description: string | null
   recurrence: "weekly" | "biweekly" | "monthly" | "custom" | "once"
   is_completed: boolean
+  start_date: string | null
+  end_date: string | null
   created_by: string
   created_at: string
   updated_at: string
@@ -58,7 +60,7 @@ export type MaintenancePlan = {
 export type MaintenanceAssignment = {
   id: string
   plan_id: string
-  user_id: string
+  user_id: string | null
   scheduled_date: string | null
   scheduled_time: string | null
   is_completed: boolean
