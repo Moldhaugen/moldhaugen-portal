@@ -10,12 +10,20 @@ export const metadata: Metadata = {
   title: "Moldhaugen Portal",
   description: "Nabolagsportalen for Moldhaugen Borettslag",
   appleWebApp: { capable: true, title: "Moldhaugen", statusBarStyle: "black-translucent" },
-  themeColor: "#1e293b",
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="no" className={`${geistSans.variable} ${geistMono.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#1e293b" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/api/icons/pwa/apple" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')})}`,
+          }}
+        />
+      </head>
       <body className="h-full antialiased">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
