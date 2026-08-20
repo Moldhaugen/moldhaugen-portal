@@ -6,6 +6,7 @@ import { logout } from "@/app/(auth)/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { MobileProfileMenu } from "@/components/layout/mobile-profile-menu"
+import { InstallPrompt } from "@/components/layout/install-prompt"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PushInit } from "@/components/push/push-init"
 
@@ -146,6 +147,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <main className="flex-1 overflow-auto bg-background md:pt-0 pt-14 pb-16 md:pb-0">
         <PushInit />
+        <InstallPrompt />
         {children}
       </main>
     </div>
