@@ -172,7 +172,18 @@ export async function updatePlan(id: string, formData: FormData) {
 
   if (start_date) {
     await supabase.from("maintenance_assignments").delete().eq("plan_id", id).is("user_id", null)
+
+    const { data: assigned } = await supabase
+      .from("maintenance_assignments")
+      .select("scheduled_date")
+      .eq("plan_id", id)
+      .not("user_id", "is", null)
+
+    const takenDates = new Set((assigned ?? []).map((a) => a.scheduled_date))
+
     const slotDates = generateSlotDates(start_date, end_date, recurrence)
+      .filter((date) => !takenDates.has(date))
+
     if (slotDates.length > 0) {
       await supabase.from("maintenance_assignments").insert(
         slotDates.map((date) => ({ plan_id: id, user_id: null, scheduled_date: date }))
