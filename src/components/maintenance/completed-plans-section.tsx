@@ -9,9 +9,10 @@ type Props = {
   plans: MaintenancePlan[]
   members: ProfileSummary[]
   currentUserId: string
+  isAdmin?: boolean
 }
 
-export function CompletedPlansSection({ plans, members, currentUserId }: Props) {
+export function CompletedPlansSection({ plans, members, currentUserId, isAdmin = false }: Props) {
   const [visible, setVisible] = useState(false)
 
   if (plans.length === 0) return null
@@ -29,7 +30,7 @@ export function CompletedPlansSection({ plans, members, currentUserId }: Props) 
       {visible && (
         <div className="space-y-6">
           {plans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} />
+            <PlanCard key={plan.id} plan={plan} members={members} currentUserId={currentUserId} isAdmin={isAdmin} />
           ))}
         </div>
       )}

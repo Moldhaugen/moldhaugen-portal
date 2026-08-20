@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       for (const assignment of dayBefore) {
         const profile = profileMap[assignment.user_id]
         if (!profile) continue
-        const planTitle = (assignment.plan as { title: string } | null)?.title ?? "Vedlikeholdsoppgave"
+        const planTitle = (assignment.plan as unknown as { title: string } | null)?.title ?? "Vedlikeholdsoppgave"
         const html = reminderEmail({ planTitle, scheduledDate: assignment.scheduled_date!, scheduledTime: assignment.scheduled_time, isToday: false, portalUrl })
 
         if (profile.email_maintenance_notifications && profile.email) {
