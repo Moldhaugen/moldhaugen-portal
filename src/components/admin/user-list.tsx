@@ -14,6 +14,7 @@ type UserRow = {
   id: string
   full_name: string | null
   email: string | null
+  phone_number: string | null
   unit_number: string | null
   is_approved: boolean
   is_admin: boolean
@@ -77,42 +78,53 @@ function UserCard({ user, currentUserId, onApprove, onReject, onToggleAdmin, onD
   const hasPendingActions = !!(onApprove || onReject)
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-border">
-      <Avatar className="h-9 w-9 shrink-0 mt-0.5">
+    <div className="flex gap-3 p-3 rounded-lg border border-border">
+      <Avatar className="h-10 w-10 shrink-0">
         {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name ?? ""} />}
-        <AvatarFallback className="bg-primary text-white text-xs">{initials(user)}</AvatarFallback>
+        <AvatarFallback className="bg-primary text-white text-sm">{initials(user)}</AvatarFallback>
       </Avatar>
+
       <div className="flex-1 min-w-0">
+        {/* Name row */}
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <p className="text-sm font-medium">{user.full_name ?? "—"}</p>
-              {user.unit_number && <Badge variant="outline" className="text-xs">{user.unit_number}</Badge>}
-              {user.is_admin && <Badge variant="default" className="text-xs">Admin</Badge>}
-              {isSelf && <Badge variant="secondary" className="text-xs">Deg</Badge>}
-            </div>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            <p className="text-xs text-muted-foreground">
-              Registrert {format(new Date(user.created_at), "d. MMM yyyy")}
-            </p>
+          <p className="text-sm font-semibold leading-snug">
+            {user.full_name ?? "—"}
+            {user.unit_number && (
+              <span className="ml-1.5 text-xs font-normal text-muted-foreground">nr. {user.unit_number}</span>
+            )}
+          </p>
+          {/* Badges + actions */}
+          <div className="flex items-center gap-1 shrink-0">
+            {user.is_admin && <Badge variant="default" className="text-xs">Admin</Badge>}
+            {isSelf && <Badge variant="secondary" className="text-xs">Deg</Badge>}
+            {!hasPendingActions && !isSelf && onToggleAdmin && (
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground"
+                onClick={onToggleAdmin} disabled={loading}
+                title={user.is_admin ? "Fjern admin" : "Gjør til admin"}>
+                {user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+              </Button>
+            )}
+            {!hasPendingActions && !isSelf && onDelete && (
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={onDelete} disabled={loading} title="Slett bruker">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
-          {!hasPendingActions && (
-            <div className="flex items-center gap-1 shrink-0">
-              {onToggleAdmin && !isSelf && (
-                <Button size="sm" variant="outline" onClick={onToggleAdmin} disabled={loading}
-                  title={user.is_admin ? "Fjern admin" : "Gjør til admin"}>
-                  {user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                </Button>
-              )}
-              {onDelete && !isSelf && (
-                <Button size="sm" variant="ghost" onClick={onDelete} disabled={loading}
-                  className="text-muted-foreground hover:text-destructive" title="Slett bruker">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
-          )}
         </div>
+
+        {/* Contact info */}
+        <div className="mt-0.5 space-y-0.5">
+          {user.phone_number && (
+            <p className="text-xs text-muted-foreground">{user.phone_number}</p>
+          )}
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          <p className="text-xs text-muted-foreground">
+            Registrert {format(new Date(user.created_at), "d. MMM yyyy")}
+          </p>
+        </div>
+
+        {/* Approve/reject row */}
         {hasPendingActions && (
           <div className="flex gap-2 mt-2">
             {onApprove && (
@@ -126,8 +138,8 @@ function UserCard({ user, currentUserId, onApprove, onReject, onToggleAdmin, onD
               </Button>
             )}
             {onDelete && (
-              <Button size="sm" variant="ghost" onClick={onDelete} disabled={loading}
-                className="text-muted-foreground hover:text-destructive" title="Slett bruker">
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                onClick={onDelete} disabled={loading}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}

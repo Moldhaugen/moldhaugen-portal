@@ -20,7 +20,7 @@ export default async function AdminPage() {
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, email, unit_number, is_approved, is_admin, created_at, avatar_url")
+    .select("id, full_name, email, phone_number, unit_number, is_approved, is_admin, created_at, avatar_url")
     .order("created_at", { ascending: true })
 
   const pending = (profiles ?? []).filter((p) => !p.is_approved)
