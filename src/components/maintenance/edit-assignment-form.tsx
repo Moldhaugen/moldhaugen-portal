@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { updateAssignment } from "@/app/(dashboard)/maintenance/actions"
+import { updateAssignment, releaseSlot } from "@/app/(dashboard)/maintenance/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,6 +28,14 @@ export function EditAssignmentForm({ assignment, members }: Props) {
   const [hasDate, setHasDate] = useState(!!assignment.scheduled_date)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [releasing, setReleasing] = useState(false)
+
+  async function handleRelease() {
+    setReleasing(true)
+    await releaseSlot(assignment.id)
+    setOpen(false)
+    setReleasing(false)
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -116,11 +124,22 @@ export function EditAssignmentForm({ assignment, members }: Props) {
               rows={2}
             />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Lagrer…" : "Lagre"}
+          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={handleRelease}
+              disabled={releasing}
+            >
+              {releasing ? "Fjerner…" : "Fjern tildeling"}
             </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Lagrer…" : "Lagre"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
