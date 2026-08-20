@@ -5,7 +5,7 @@ import { approveUser, rejectUser, toggleAdmin, deleteUser } from "@/app/(dashboa
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Check, X, ShieldCheck, ShieldOff, Trash2 } from "lucide-react"
 import { format } from "date-fns"
@@ -18,6 +18,7 @@ type UserRow = {
   is_approved: boolean
   is_admin: boolean
   created_at: string
+  avatar_url: string | null
 }
 
 type Props = {
@@ -76,6 +77,7 @@ function UserCard({ user, currentUserId, onApprove, onReject, onToggleAdmin, onD
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
       <Avatar className="h-9 w-9 shrink-0">
+        {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name ?? ""} />}
         <AvatarFallback className="bg-primary text-white text-xs">{initials(user)}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
