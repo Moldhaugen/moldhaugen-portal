@@ -159,10 +159,12 @@ export async function updatePlan(id: string, formData: FormData) {
   const title = formData.get("title") as string
   const description = formData.get("description") as string
   const recurrence = formData.get("recurrence") as string
+  const start_date = (formData.get("start_date") as string) || null
+  const end_date = (formData.get("end_date") as string) || null
 
   const { error } = await supabase
     .from("maintenance_plans")
-    .update({ title, description: description || null, recurrence, updated_at: new Date().toISOString() })
+    .update({ title, description: description || null, recurrence, start_date, end_date, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("created_by", user.id)
 

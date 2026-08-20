@@ -16,6 +16,8 @@ type Props = { plan: MaintenancePlan }
 export function EditPlanForm({ plan }: Props) {
   const [open, setOpen] = useState(false)
   const [recurrence, setRecurrence] = useState<string>(plan.recurrence)
+  const [startDate, setStartDate] = useState(plan.start_date ?? "")
+  const [endDate, setEndDate] = useState(plan.end_date ?? "")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -58,17 +60,44 @@ export function EditPlanForm({ plan }: Props) {
             <Textarea id="edit-description" name="description" defaultValue={plan.description ?? ""} rows={2} />
           </div>
           <div className="space-y-2">
-            <Label>Frekvens</Label>
+            <Label>Vaktlengde per person</Label>
             <Select value={recurrence} onValueChange={setRecurrence}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="once">Engangs</SelectItem>
-                <SelectItem value="weekly">Ukentlig</SelectItem>
-                <SelectItem value="biweekly">Annenhver uke</SelectItem>
-                <SelectItem value="monthly">Månedlig</SelectItem>
-                <SelectItem value="custom">Tilpasset</SelectItem>
+                <SelectItem value="weekly">1 uke</SelectItem>
+                <SelectItem value="biweekly">2 uker</SelectItem>
+                <SelectItem value="monthly">1 måned</SelectItem>
+                <SelectItem value="custom">Tilpasset (manuell)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>
+              Planperiode{" "}
+              <span className="text-muted-foreground font-normal">(valgfritt)</span>
+            </Label>
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1">
+                <span className="text-xs text-muted-foreground">Fra</span>
+                <Input
+                  name="start_date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <span className="text-xs text-muted-foreground">Til</span>
+                <Input
+                  name="end_date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
