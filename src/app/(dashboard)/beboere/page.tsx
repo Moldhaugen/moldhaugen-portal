@@ -35,11 +35,11 @@ export default async function BeboerePage() {
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm text-foreground truncate">
                 {r.full_name ?? <span className="text-muted-foreground italic">Ukjent navn</span>}
-                {r.unit_number && (
-                  <span className="ml-2 text-xs text-muted-foreground font-normal">nr. {r.unit_number}</span>
-                )}
               </p>
               <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5">
+                {r.unit_number && (
+                  <span className="text-xs text-muted-foreground">nr. {r.unit_number}</span>
+                )}
                 {r.email && (
                   <a
                     href={`mailto:${r.email}`}
