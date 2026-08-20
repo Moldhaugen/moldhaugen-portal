@@ -169,6 +169,17 @@ export async function updatePlan(id: string, formData: FormData) {
     .eq("created_by", user.id)
 
   if (error) return { error: error.message }
+
+  if (start_date) {
+    await supabase.from("maintenance_assignments").delete().eq("plan_id", id).is("user_id", null)
+    const slotDates = generateSlotDates(start_date, end_date, recurrence)
+    if (slotDates.length > 0) {
+      await supabase.from("maintenance_assignments").insert(
+        slotDates.map((date) => ({ plan_id: id, user_id: null, scheduled_date: date }))
+      )
+    }
+  }
+
   revalidatePath("/maintenance")
   return { success: true }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { updatePlan } from "@/app/(dashboard)/maintenance/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,23 @@ export function EditPlanForm({ plan }: Props) {
   const [endDate, setEndDate] = useState(plan.end_date ?? "")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const slotCount = useMemo(() => {
+    if (!startDate || recurrence === "once" || recurrence === "custom") return 0
+    let count = 0
+    const cur = new Date(startDate + "T00:00:00")
+    const end = endDate ? new Date(endDate + "T00:00:00") : null
+    while (count < 104) {
+      if (end && cur > end) break
+      count++
+      if (!end) break
+      if (recurrence === "weekly") cur.setDate(cur.getDate() + 7)
+      else if (recurrence === "biweekly") cur.setDate(cur.getDate() + 14)
+      else if (recurrence === "monthly") cur.setMonth(cur.getMonth() + 1)
+      else break
+    }
+    return count
+  }, [startDate, endDate, recurrence])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -99,6 +116,12 @@ export function EditPlanForm({ plan }: Props) {
               </div>
             </div>
           </div>
+          {startDate && slotCount > 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Lagring vil erstatte ledige vakter med {slotCount} nye à {recurrence === "weekly" ? "1 uke" : recurrence === "biweekly" ? "2 uker" : "1 måned"}. Tildelte vakter beholdes.
+            </p>
+          )}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Avbryt</Button>
             <Button type="submit" disabled={loading}>
