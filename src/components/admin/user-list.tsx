@@ -74,57 +74,64 @@ function UserCard({ user, currentUserId, onApprove, onReject, onToggleAdmin, onD
   loading: boolean
 }) {
   const isSelf = user.id === currentUserId
+  const hasPendingActions = !!(onApprove || onReject)
+
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
-      <Avatar className="h-9 w-9 shrink-0">
+    <div className="flex items-start gap-3 p-3 rounded-lg border border-border">
+      <Avatar className="h-9 w-9 shrink-0 mt-0.5">
         {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name ?? ""} />}
         <AvatarFallback className="bg-primary text-white text-xs">{initials(user)}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-medium">{user.full_name ?? "—"}</p>
-          {user.unit_number && <Badge variant="outline" className="text-xs">{user.unit_number}</Badge>}
-          {user.is_admin && <Badge variant="default" className="text-xs">Admin</Badge>}
-          {isSelf && <Badge variant="secondary" className="text-xs">Deg</Badge>}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="text-sm font-medium">{user.full_name ?? "—"}</p>
+              {user.unit_number && <Badge variant="outline" className="text-xs">{user.unit_number}</Badge>}
+              {user.is_admin && <Badge variant="default" className="text-xs">Admin</Badge>}
+              {isSelf && <Badge variant="secondary" className="text-xs">Deg</Badge>}
+            </div>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <p className="text-xs text-muted-foreground">
+              Registrert {format(new Date(user.created_at), "d. MMM yyyy")}
+            </p>
+          </div>
+          {!hasPendingActions && (
+            <div className="flex items-center gap-1 shrink-0">
+              {onToggleAdmin && !isSelf && (
+                <Button size="sm" variant="outline" onClick={onToggleAdmin} disabled={loading}
+                  title={user.is_admin ? "Fjern admin" : "Gjør til admin"}>
+                  {user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+              {onDelete && !isSelf && (
+                <Button size="sm" variant="ghost" onClick={onDelete} disabled={loading}
+                  className="text-muted-foreground hover:text-destructive" title="Slett bruker">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">{user.email}</p>
-        <p className="text-xs text-muted-foreground">
-          Registrert {format(new Date(user.created_at), "d. MMM yyyy")}
-        </p>
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        {onApprove && (
-          <Button size="sm" onClick={onApprove} disabled={loading} className="gap-1">
-            <Check className="h-3.5 w-3.5" /> Godkjenn
-          </Button>
-        )}
-        {onReject && (
-          <Button size="sm" variant="destructive" onClick={onReject} disabled={loading} className="gap-1">
-            <X className="h-3.5 w-3.5" /> Avvis
-          </Button>
-        )}
-        {onToggleAdmin && !isSelf && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onToggleAdmin}
-            disabled={loading}
-            title={user.is_admin ? "Fjern admin" : "Gjør til admin"}
-          >
-            {user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-          </Button>
-        )}
-        {onDelete && !isSelf && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onDelete}
-            disabled={loading}
-            className="text-muted-foreground hover:text-destructive"
-            title="Slett bruker"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+        {hasPendingActions && (
+          <div className="flex gap-2 mt-2">
+            {onApprove && (
+              <Button size="sm" onClick={onApprove} disabled={loading} className="gap-1 flex-1">
+                <Check className="h-3.5 w-3.5" /> Godkjenn
+              </Button>
+            )}
+            {onReject && (
+              <Button size="sm" variant="destructive" onClick={onReject} disabled={loading} className="gap-1 flex-1">
+                <X className="h-3.5 w-3.5" /> Avvis
+              </Button>
+            )}
+            {onDelete && (
+              <Button size="sm" variant="ghost" onClick={onDelete} disabled={loading}
+                className="text-muted-foreground hover:text-destructive" title="Slett bruker">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>
