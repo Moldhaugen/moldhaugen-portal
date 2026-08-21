@@ -4,6 +4,7 @@ create table tools (
   name text not null,
   description text,
   available boolean not null default true,
+  borrowed_by_name text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

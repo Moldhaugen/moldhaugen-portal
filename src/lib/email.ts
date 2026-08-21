@@ -154,6 +154,28 @@ export function newSignupEmail(opts: { name: string; email: string; unitNumber: 
 <a href="${opts.portalUrl}/admin" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Gå til administrasjon</a>`, opts.portalUrl)
 }
 
+export function toolBorrowRequestEmail(opts: {
+  toolName: string
+  requesterName: string
+  requesterPhone: string | null
+  requesterEmail: string | null
+  message: string
+  portalUrl: string
+}) {
+  return base(`
+<h2>${opts.requesterName} ønsker å låne ${opts.toolName}</h2>
+<p>Du har fått en låneforespørsel via Moldhaugen-portalen.</p>
+<div class="detail">
+  <p class="label">Melding</p>
+  <p>${opts.message}</p>
+  <p class="label" style="margin-top:8px">Fra</p>
+  <p><strong>${opts.requesterName}</strong></p>
+  ${opts.requesterPhone ? `<p class="label" style="margin-top:8px">Telefon</p><p>${opts.requesterPhone}</p>` : ""}
+  ${opts.requesterEmail ? `<p class="label" style="margin-top:8px">E-post</p><p>${opts.requesterEmail}</p>` : ""}
+</div>
+<a href="${opts.portalUrl}/verktoy" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se verktøyliste</a>`, opts.portalUrl)
+}
+
 export function announcementEmail(opts: { subject: string; body: string; senderName: string; portalUrl: string }) {
   return base(`
 <h2>${opts.subject}</h2>
