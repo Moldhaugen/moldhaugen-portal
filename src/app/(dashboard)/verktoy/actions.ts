@@ -388,8 +388,6 @@ export async function returnTool(toolId: string) {
     return { error: "Ikke autorisert" }
   }
 
-  // Use service client so both owner and borrower can perform these writes
-  const service = createServiceClient()
   await Promise.all([
     service.from("tools").update({
       available: true,
