@@ -365,8 +365,13 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
   const activeRequest = myRequest?.status === "pending" || myRequest?.status === "approved" ? myRequest : undefined
   const [requesting, setRequesting] = useState(!!activeRequest)
 
+  const canOpen = tool.available && !requesting
+
   return (
-    <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
+    <Card
+      className={`${tool.available || myRequest?.status === "approved" ? "" : "opacity-60"} ${canOpen ? "cursor-pointer hover:border-primary/50 transition-colors" : ""}`}
+      onClick={canOpen ? () => setRequesting(true) : undefined}
+    >
       <CardContent className="py-3 space-y-2">
         <div className="flex items-start gap-3">
           {tool.image_url && (
@@ -381,7 +386,7 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
             {!tool.available && tool.borrowed_by_name && (
               <p className="text-xs text-muted-foreground">Hos: <span className="font-medium">{tool.borrowed_by_name}</span></p>
             )}
-            <div className="flex gap-3 mt-1">
+            <div className="flex gap-3 mt-1" onClick={(e) => e.stopPropagation()}>
               {tool.profile?.phone_number && (
                 <a href={`tel:${tool.profile.phone_number}`} className="flex items-center gap-1 text-xs text-primary hover:underline">
                   <Phone className="h-3 w-3" />{tool.profile.phone_number}
@@ -394,14 +399,7 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
               )}
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <AvailabilityBadge available={tool.available} />
-            {!requesting && tool.available && (
-              <button onClick={() => setRequesting(true)} className="text-xs text-primary hover:underline">
-                Spør om å låne
-              </button>
-            )}
-          </div>
+          <AvailabilityBadge available={tool.available} />
         </div>
         {requesting && (
           <BorrowRequestForm
