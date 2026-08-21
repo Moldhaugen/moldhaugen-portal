@@ -348,7 +348,8 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 }
 
 function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolRequest }) {
-  const [requesting, setRequesting] = useState(!!myRequest)
+  const activeRequest = myRequest?.status === "pending" || myRequest?.status === "approved" ? myRequest : undefined
+  const [requesting, setRequesting] = useState(!!activeRequest)
 
   return (
     <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
@@ -391,8 +392,8 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
         {requesting && (
           <BorrowRequestForm
             tool={tool}
-            existingRequest={myRequest}
-            onDone={() => !myRequest && setRequesting(false)}
+            existingRequest={activeRequest}
+            onDone={() => !activeRequest && setRequesting(false)}
           />
         )}
       </CardContent>
