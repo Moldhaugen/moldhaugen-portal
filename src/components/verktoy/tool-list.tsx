@@ -302,15 +302,17 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
     )
   }
 
-  async function handleSend() {
+  const today = new Date().toISOString().split("T")[0]
+
+  async function buildAndSend(from: string, until: string) {
     setError(null)
-    if (!message.trim() || !borrowFrom || !borrowUntil) { setError("Fyll ut alle feltene"); return }
+    if (!message.trim()) { setError("Fyll ut melding"); return }
     setSending(true)
     const fd = new FormData()
     fd.set("tool_id", tool.id)
     fd.set("message", message)
-    fd.set("borrow_from", borrowFrom)
-    fd.set("borrow_until", borrowUntil)
+    fd.set("borrow_from", from)
+    fd.set("borrow_until", until)
     const result = await createBorrowRequest(fd)
     if (result.error) { setError(result.error); setSending(false); return }
     setSent(true)
@@ -318,28 +320,39 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
     router.refresh()
   }
 
-  const today = new Date().toISOString().split("T")[0]
-
   return (
     <div className="pt-2 border-t border-border space-y-2">
       {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="space-y-1">
+        <Label className="text-xs">Melding</Label>
+        <Input value={message} onChange={(e) => setMessage(e.target.value)} className="h-8 text-sm" />
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">Fra</Label>
-          <Input type="date" value={borrowFrom} min={today} onChange={(e) => setBorrowFrom(e.target.value)} className="h-8 text-sm" />
+          <Input
+            type="date"
+            value={borrowFrom}
+            min={today}
+            onChange={(e) => {
+              const val = e.target.value
+              setBorrowFrom(val)
+              if (!borrowUntil || borrowUntil < val) setBorrowUntil(val)
+            }}
+            className="h-8 text-sm"
+          />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Til</Label>
           <Input type="date" value={borrowUntil} min={borrowFrom || today} onChange={(e) => setBorrowUntil(e.target.value)} className="h-8 text-sm" />
         </div>
       </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Melding</Label>
-        <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Hei, kan jeg låne...?" className="h-8 text-sm" />
-      </div>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={handleSend} disabled={sending}>
-          {sending ? "Sender…" : "Send forespørsel"}
+      <div className="flex gap-2 flex-wrap">
+        <Button size="sm" onClick={() => buildAndSend(today, today)} disabled={sending}>
+          {sending ? "Sender…" : "Lån i dag"}
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => { if (borrowFrom && borrowUntil) buildAndSend(borrowFrom, borrowUntil); else setError("Velg datoer") }} disabled={sending}>
+          Send forespørsel
         </Button>
         <Button size="sm" variant="ghost" onClick={onDone}>Avbryt</Button>
       </div>
@@ -348,23 +361,8 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 }
 
 function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolRequest }) {
-  const router = useRouter()
   const activeRequest = myRequest?.status === "pending" || myRequest?.status === "approved" ? myRequest : undefined
   const [requesting, setRequesting] = useState(!!activeRequest)
-  const [quickBorrowing, setQuickBorrowing] = useState(false)
-
-  async function handleQuickBorrow() {
-    setQuickBorrowing(true)
-    const today = new Date().toISOString().split("T")[0]
-    const fd = new FormData()
-    fd.set("tool_id", tool.id)
-    fd.set("message", "Lån for i dag")
-    fd.set("borrow_from", today)
-    fd.set("borrow_until", today)
-    await createBorrowRequest(fd)
-    setQuickBorrowing(false)
-    router.refresh()
-  }
 
   return (
     <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
@@ -398,14 +396,9 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
           <div className="flex flex-col items-end gap-2 shrink-0">
             <AvailabilityBadge available={tool.available} />
             {!requesting && tool.available && (
-              <>
-                <button onClick={handleQuickBorrow} disabled={quickBorrowing} className="text-xs font-medium text-primary hover:underline disabled:opacity-50">
-                  {quickBorrowing ? "Sender…" : "Lån i dag"}
-                </button>
-                <button onClick={() => setRequesting(true)} className="text-xs text-muted-foreground hover:text-foreground">
-                  Velg datoer
-                </button>
-              </>
+              <button onClick={() => setRequesting(true)} className="text-xs text-primary hover:underline">
+                Spør om å låne
+              </button>
             )}
           </div>
         </div>
