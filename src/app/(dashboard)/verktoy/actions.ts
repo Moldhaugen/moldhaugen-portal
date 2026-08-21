@@ -9,11 +9,10 @@ import { sendPushToUsers } from "@/lib/push"
 async function broadcastToolUpdate() {
   try {
     const supabase = createServiceClient()
-    await supabase.channel("verktoy").send({
-      type: "broadcast",
-      event: "refresh",
-      payload: {},
-    })
+    await Promise.all([
+      supabase.channel("verktoy").send({ type: "broadcast", event: "refresh", payload: {} }),
+      supabase.channel("calendar").send({ type: "broadcast", event: "refresh", payload: {} }),
+    ])
   } catch { /* non-critical */ }
 }
 
