@@ -424,6 +424,10 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
   const activeRequest = (myRequest?.status === "pending" || myRequest?.status === "approved") ? myRequest : undefined
   const [requesting, setRequesting] = useState(!!activeRequest)
 
+  useEffect(() => {
+    if (!activeRequest) setRequesting(false)
+  }, [activeRequest])
+
   const canOpen = tool.available && !requesting
 
   return (
