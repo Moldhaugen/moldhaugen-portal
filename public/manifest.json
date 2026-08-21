@@ -2,7 +2,7 @@
   "name": "Moldhaugen Portal",
   "short_name": "Moldhaugen",
   "description": "Nabolagsportalen for Moldhaugen Borettslag",
-  "start_url": "/calendar",
+  "start_url": "/oppslagstavle",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

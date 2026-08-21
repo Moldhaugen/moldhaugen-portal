@@ -13,7 +13,6 @@ import { PushInit } from "@/components/push/push-init"
 const navItems = [
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
   { href: "/maintenance", label: "Vedlikehold", icon: Wrench },
-  { href: "/oppslagstavle", label: "Oppslagstavle", icon: Pin },
   { href: "/verktoy", label: "Verktøy", icon: Hammer },
   { href: "/beboere", label: "Beboere", icon: Users },
   { href: "/info", label: "Nyttig info", icon: BookOpen },
@@ -52,7 +51,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         className="hidden md:flex w-64 flex-col"
         style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-fg)" }}
       >
-        <div className="flex items-center gap-3 px-6 py-5">
+        <Link href="/oppslagstavle" className="flex items-center gap-3 px-6 py-5 hover:opacity-80 transition-opacity">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Home className="h-5 w-5 text-white" />
           </div>
@@ -64,7 +63,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               Nabolagsportalen
             </p>
           </div>
-        </div>
+        </Link>
 
         <Separator style={{ background: "var(--sidebar-border)" }} />
 
@@ -118,12 +117,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-2">
+        <Link href="/oppslagstavle" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
             <Home className="h-4 w-4 text-white" />
           </div>
           <span className="font-semibold text-sm">Moldhaugen</span>
-        </div>
+        </Link>
         <MobileProfileMenu
           displayName={displayName}
           initials={initials}

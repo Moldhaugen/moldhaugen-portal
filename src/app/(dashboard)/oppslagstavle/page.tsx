@@ -11,7 +11,7 @@ export default async function OppslagstavlePage() {
   if (!user) redirect("/login")
 
   const [{ data: profile }, { data: posts }] = await Promise.all([
-    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
+    supabase.from("profiles").select("is_admin, full_name").eq("id", user.id).single(),
     supabase
       .from("bulletin_posts")
       .select(`
@@ -24,19 +24,25 @@ export default async function OppslagstavlePage() {
   ])
 
   const allPosts = posts ?? []
+  const firstName = profile?.full_name?.split(" ")[0]
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Pin className="h-6 w-6 text-primary" />
-            Oppslagstavle
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {allPosts.length === 0 ? "Ingen innlegg ennå" : `${allPosts.length} innlegg`}
-          </p>
-        </div>
+      {/* Welcome banner */}
+      <div className="rounded-xl bg-primary/10 border border-primary/20 px-6 py-5 mb-8">
+        <h1 className="text-xl font-bold text-foreground">
+          {firstName ? `Hei, ${firstName}! 👋` : "Velkommen til Moldhaugen! 👋"}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Her holder vi kontakten, planlegger dugnader og deler det som er nyttig for borettslaget.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Pin className="h-4 w-4 text-primary" />
+          Oppslagstavle
+        </h2>
         <PostForm />
       </div>
 

@@ -50,7 +50,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/calendar", request.url))
+    return NextResponse.redirect(new URL("/oppslagstavle", request.url))
   }
 
   return supabaseResponse

@@ -12,7 +12,7 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return { error: "Feil e-post eller passord." }
 
-  redirect("/calendar")
+  redirect("/oppslagstavle")
 }
 
 export async function signup(formData: FormData) {
@@ -64,7 +64,7 @@ export async function resetPassword(formData: FormData) {
   const { error } = await supabase.auth.updateUser({ password })
   if (error) return { error: error.message }
 
-  redirect("/calendar")
+  redirect("/oppslagstavle")
 }
 
 export async function logout() {
