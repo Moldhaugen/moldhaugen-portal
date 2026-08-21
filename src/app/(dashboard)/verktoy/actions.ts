@@ -8,16 +8,13 @@ import { sendPushToUsers } from "@/lib/push"
 
 async function broadcastToolUpdate() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      },
-      body: JSON.stringify({ messages: [{ topic: "realtime:verktoy", event: "refresh", payload: {} }] }),
+    const supabase = createServiceClient()
+    const result = await supabase.channel("verktoy").send({
+      type: "broadcast",
+      event: "refresh",
+      payload: {},
     })
-    console.log("[broadcast] status:", res.status, await res.text())
+    console.log("[broadcast] result:", result)
   } catch (e) { console.error("[broadcast] failed:", e) }
 }
 
