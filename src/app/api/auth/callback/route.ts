@@ -7,6 +7,9 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code")
   const next = requestUrl.searchParams.get("next") ?? "/calendar"
 
+  const redirectUrl = new URL(next, requestUrl.origin)
+  const response = NextResponse.redirect(redirectUrl)
+
   if (code) {
     const cookieStore = await cookies()
     const supabase = createServerClient(
@@ -19,7 +22,7 @@ export async function GET(request: Request) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
+              response.cookies.set(name, value, options)
             })
           },
         },
@@ -28,5 +31,5 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin))
+  return response
 }
