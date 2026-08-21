@@ -348,8 +348,23 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 }
 
 function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolRequest }) {
+  const router = useRouter()
   const activeRequest = myRequest?.status === "pending" || myRequest?.status === "approved" ? myRequest : undefined
   const [requesting, setRequesting] = useState(!!activeRequest)
+  const [quickBorrowing, setQuickBorrowing] = useState(false)
+
+  async function handleQuickBorrow() {
+    setQuickBorrowing(true)
+    const today = new Date().toISOString().split("T")[0]
+    const fd = new FormData()
+    fd.set("tool_id", tool.id)
+    fd.set("message", "Lån for i dag")
+    fd.set("borrow_from", today)
+    fd.set("borrow_until", today)
+    await createBorrowRequest(fd)
+    setQuickBorrowing(false)
+    router.refresh()
+  }
 
   return (
     <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
@@ -383,9 +398,14 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
           <div className="flex flex-col items-end gap-2 shrink-0">
             <AvailabilityBadge available={tool.available} />
             {!requesting && tool.available && (
-              <button onClick={() => setRequesting(true)} className="text-xs text-primary hover:underline">
-                Spør om å låne
-              </button>
+              <>
+                <button onClick={handleQuickBorrow} disabled={quickBorrowing} className="text-xs font-medium text-primary hover:underline disabled:opacity-50">
+                  {quickBorrowing ? "Sender…" : "Lån i dag"}
+                </button>
+                <button onClick={() => setRequesting(true)} className="text-xs text-muted-foreground hover:text-foreground">
+                  Velg datoer
+                </button>
+              </>
             )}
           </div>
         </div>
