@@ -402,7 +402,7 @@ export async function declineToolAssignment(requestId: string) {
   return { success: true }
 }
 
-export async function returnTool(toolId: string) {
+export async function returnTool(toolId: string, requestId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Ikke innlogget" }
@@ -422,9 +422,13 @@ export async function returnTool(toolId: string) {
 
   if (!isOwner && !isBorrower) return { error: "Ikke autorisert" }
 
-  // Borrower returning: mark only their own request. Owner reclaiming: clear all approved requests.
-  const requestUpdate = isBorrower && !isOwner
-    ? service.from("tool_requests").update({ status: "returned" }).eq("id", myApprovedRequest!.id)
+  // Determine which request to mark returned:
+  // - specific requestId (owner clicking a row): mark only that one
+  // - borrower returning without a specific target: mark their own
+  // - owner with no specific target (fallback button): clear all
+  const targetId = requestId ?? (isBorrower && !isOwner ? myApprovedRequest!.id : null)
+  const requestUpdate = targetId
+    ? service.from("tool_requests").update({ status: "returned" }).eq("id", targetId)
     : service.from("tool_requests").update({ status: "returned" }).eq("tool_id", toolId).eq("status", "approved")
 
   await Promise.all([
@@ -437,12 +441,14 @@ export async function returnTool(toolId: string) {
   ])
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
-  const otherBorrower = approvedRequests?.find((r) => r.requester_id !== user.id)
+  const targetRequest = targetId ? (approvedRequests ?? []).find((r) => r.id === targetId) : null
+  const notifyId = isOwner ? targetRequest?.requester_id : tool.user_id
 
-  if (!isOwner) {
-    await sendPushToUsers([tool.user_id], `${tool.name} er levert tilbake`, "Verktøyet er markert som returnert.", `${siteUrl}/verktoy`)
-  } else if (otherBorrower?.requester_id) {
-    await sendPushToUsers([otherBorrower.requester_id], `${tool.name} er registrert returnert`, "Eieren har bekreftet at verktøyet er levert tilbake.", `${siteUrl}/verktoy`)
+  if (notifyId) {
+    const msg = isOwner
+      ? { title: `${tool.name} er registrert returnert`, body: "Eieren har bekreftet at verktøyet er levert tilbake." }
+      : { title: `${tool.name} er levert tilbake`, body: "Verktøyet er markert som returnert." }
+    await sendPushToUsers([notifyId], msg.title, msg.body, `${siteUrl}/verktoy`)
   }
 
   revalidatePath("/verktoy")

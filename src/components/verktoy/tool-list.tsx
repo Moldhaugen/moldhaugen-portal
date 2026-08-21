@@ -166,7 +166,7 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
 
   async function handleReturn(reqId: string) {
     setReturningId(reqId)
-    const result = await returnTool(tool.id)
+    const result = await returnTool(tool.id, reqId !== "global" ? reqId : undefined)
     setReturningId(null)
     if (result?.error) { alert(result.error); return }
     router.refresh()
