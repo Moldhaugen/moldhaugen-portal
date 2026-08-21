@@ -428,7 +428,8 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
   const [requesting, setRequesting] = useState(!!activeRequest)
 
   useEffect(() => {
-    if (!activeRequest) setRequesting(false)
+    if (activeRequest) setRequesting(true)
+    else setRequesting(false)
   }, [activeRequest])
 
   const canOpen = tool.available && !requesting
