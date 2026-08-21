@@ -19,6 +19,7 @@ export function EventCard({ event, currentUserId }: Props) {
   const start = new Date(event.start_time)
   const end = new Date(event.end_time)
   const sameDay = start.toDateString() === end.toDateString()
+  const isAllDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0
 
   async function handleDelete() {
     if (!confirm(`Slett "${event.title}"?`)) return
@@ -45,15 +46,21 @@ export function EventCard({ event, currentUserId }: Props) {
             <div className="space-y-1 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <CalendarDays className="h-3 w-3 shrink-0" />
-                <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
+                {isAllDay && !sameDay ? (
+                  <span>{format(start, "d. MMM", { locale: nb })} – {format(end, "d. MMM yyyy", { locale: nb })}</span>
+                ) : (
+                  <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
+                )}
               </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3 w-3 shrink-0" />
-                <span>
-                  {format(start, "HH:mm")} –{" "}
-                  {sameDay ? format(end, "HH:mm") : format(end, "d. MMM HH:mm", { locale: nb })}
-                </span>
-              </div>
+              {!isAllDay && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  <span>
+                    {format(start, "HH:mm")} –{" "}
+                    {sameDay ? format(end, "HH:mm") : format(end, "d. MMM HH:mm", { locale: nb })}
+                  </span>
+                </div>
+              )}
               {event.location && (
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-3 w-3 shrink-0" />

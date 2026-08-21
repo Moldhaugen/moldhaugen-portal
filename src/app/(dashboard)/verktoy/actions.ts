@@ -209,8 +209,8 @@ export async function approveBorrowRequest(requestId: string) {
     .insert({
       title: `${tool!.name} utlånt`,
       description: `Lånt ut til ${requester?.full_name ?? "ukjent"}`,
-      start_time: `${request.borrow_from}T08:00:00`,
-      end_time: `${request.borrow_until}T20:00:00`,
+      start_time: `${request.borrow_from}T00:00:00`,
+      end_time: `${request.borrow_until}T00:00:00`,
       is_public: true,
       created_by: user.id,
     })
