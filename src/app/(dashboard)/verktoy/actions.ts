@@ -207,9 +207,9 @@ export async function approveBorrowRequest(requestId: string) {
   const { data: event } = await supabase
     .from("events")
     .insert({
-      title: `${tool!.name} leveres tilbake`,
-      description: `${requester?.full_name ?? "ukjent"} leverer tilbake ${tool!.name}`,
-      start_time: `${request.borrow_until}T10:00:00`,
+      title: `${tool!.name} utlånt`,
+      description: `Lånt ut til ${requester?.full_name ?? "ukjent"}`,
+      start_time: `${request.borrow_from}T08:00:00`,
       end_time: `${request.borrow_until}T20:00:00`,
       is_public: true,
       created_by: user.id,
