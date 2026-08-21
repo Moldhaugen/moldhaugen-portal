@@ -30,10 +30,10 @@ export default async function VerktoyPage() {
     myToolIds.length > 0
       ? supabase
           .from("tool_requests")
-          .select("id, tool_id, requester_id, message, borrow_from, borrow_until, status, created_at, requester:profiles(id, full_name, unit_number, phone_number, email)")
+          .select("id, tool_id, requester_id, message, borrow_from, borrow_until, status, owner_initiated, created_at, requester:profiles(id, full_name, unit_number, phone_number, email)")
           .in("tool_id", myToolIds)
-          .eq("status", "pending")
-          .order("created_at", { ascending: false })
+          .in("status", ["pending", "approved"])
+          .order("borrow_from", { ascending: true })
       : Promise.resolve({ data: [] }),
     supabase
       .from("tool_requests")

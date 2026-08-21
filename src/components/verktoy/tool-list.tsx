@@ -130,14 +130,18 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [showRequests, setShowRequests] = useState(requests.length > 0)
+  const pendingRequests = requests.filter((r) => r.status === "pending" && !r.owner_initiated)
+  const [showRequests, setShowRequests] = useState(pendingRequests.length > 0)
   const [selectedBorrowerId, setSelectedBorrowerId] = useState("")
   const [saving, setSaving] = useState(false)
   const [assignError, setAssignError] = useState<string | null>(null)
-  const [localRequests, setLocalRequests] = useState(requests)
+  const [localPending, setLocalPending] = useState(pendingRequests)
 
-  useEffect(() => { setLocalRequests(requests) }, [requests])
-  useEffect(() => { if (requests.length > 0) setShowRequests(true) }, [requests])
+  useEffect(() => {
+    const p = requests.filter((r) => r.status === "pending" && !r.owner_initiated)
+    setLocalPending(p)
+    if (p.length > 0) setShowRequests(true)
+  }, [requests])
 
   async function handleAssign() {
     if (!selectedBorrowerId) return
@@ -161,13 +165,13 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
 
   async function handleApprove(requestId: string) {
     await approveBorrowRequest(requestId)
-    setLocalRequests((prev) => prev.filter((r) => r.id !== requestId))
+    setLocalPending((prev) => prev.filter((r) => r.id !== requestId))
     router.refresh()
   }
 
   async function handleDecline(requestId: string) {
     await declineBorrowRequest(requestId)
-    setLocalRequests((prev) => prev.filter((r) => r.id !== requestId))
+    setLocalPending((prev) => prev.filter((r) => r.id !== requestId))
     router.refresh()
   }
 
@@ -179,20 +183,21 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-medium text-sm">{tool.name}</p>
-              {localRequests.length > 0 && (
+              {localPending.length > 0 && (
                 <button
                   onClick={() => setShowRequests(!showRequests)}
                   className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-medium"
                 >
-                  {localRequests.length} forespørsel{localRequests.length > 1 ? "er" : ""}
+                  {localPending.length} forespørsel{localPending.length > 1 ? "er" : ""}
                   {showRequests ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </button>
               )}
             </div>
             {tool.description && <p className="text-xs text-muted-foreground">{tool.description}</p>}
-            {!tool.available && tool.borrowed_by_name && (
-              <p className="text-xs text-muted-foreground">Hos: <span className="font-medium">{tool.borrowed_by_name}</span></p>
-            )}
+            {!tool.available && (() => {
+              const name = tool.borrowed_by_name ?? requests.find((r) => r.status === "approved")?.requester?.full_name ?? null
+              return name ? <p className="text-xs text-muted-foreground">Hos: <span className="font-medium">{name}</span></p> : null
+            })()}
           </div>
           <AvailabilityBadge available={tool.available} />
           {tool.available ? (
@@ -237,16 +242,35 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
           </div>
         )}
 
-        {showRequests && localRequests.length > 0 && (
+        {showRequests && localPending.length > 0 && (
           <div className="pt-2 border-t border-border space-y-2">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Forespørsler</p>
-            {localRequests.map((req) => (
+            {localPending.map((req) => (
               <IncomingRequestCard
                 key={req.id}
                 request={req}
                 onApprove={handleApprove}
                 onDecline={handleDecline}
               />
+            ))}
+          </div>
+        )}
+
+        {requests.length > 0 && (
+          <div className="pt-2 border-t border-border space-y-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Timeplan</p>
+            {requests.map((req) => (
+              <div key={req.id} className="flex items-center justify-between gap-2 text-xs py-1">
+                <span className="font-medium truncate">{req.requester?.full_name ?? "Ukjent"}</span>
+                <span className="text-muted-foreground shrink-0">{formatDate(req.borrow_from)} – {formatDate(req.borrow_until)}</span>
+                <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                  req.status === "approved"
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                }`}>
+                  {req.status === "approved" ? "Aktiv" : "Venter"}
+                </span>
+              </div>
             ))}
           </div>
         )}

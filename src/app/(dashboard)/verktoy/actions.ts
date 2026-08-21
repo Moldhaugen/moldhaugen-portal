@@ -371,29 +371,18 @@ export async function returnTool(toolId: string) {
 
   const service = createServiceClient()
 
-  // Regular client: all authenticated users can SELECT tools
-  const { data: tool } = await supabase.from("tools").select("user_id, name").eq("id", toolId).single()
+  const [{ data: tool }, { data: approvedRequests }] = await Promise.all([
+    service.from("tools").select("user_id, name").eq("id", toolId).single(),
+    service.from("tool_requests").select("id, requester_id").eq("tool_id", toolId).eq("status", "approved"),
+  ])
+
   if (!tool) return { error: "Verktøy ikke funnet" }
 
+  const approvedRequest = approvedRequests?.[0] ?? null
   const isOwner = tool.user_id === user.id
+  const isBorrower = (approvedRequests ?? []).some((r) => r.requester_id === user.id)
 
-  if (!isOwner) {
-    // Borrower: verify they have an approved request for this tool
-    const { data: myRequest } = await supabase.from("tool_requests")
-      .select("id")
-      .eq("tool_id", toolId)
-      .eq("requester_id", user.id)
-      .eq("status", "approved")
-      .maybeSingle()
-    if (!myRequest) return { error: "Ikke autorisert" }
-  }
-
-  // Find the approved request for notifications (service client to bypass RLS)
-  const { data: approvedRequest } = await service.from("tool_requests")
-    .select("id, requester_id")
-    .eq("tool_id", toolId)
-    .eq("status", "approved")
-    .maybeSingle()
+  if (!isOwner && !isBorrower) return { error: "Ikke autorisert" }
 
   await Promise.all([
     service.from("tools").update({
@@ -401,8 +390,8 @@ export async function returnTool(toolId: string) {
       borrowed_by_name: null,
       updated_at: new Date().toISOString(),
     }).eq("id", toolId),
-    approvedRequest
-      ? service.from("tool_requests").update({ status: "returned" }).eq("id", approvedRequest.id)
+    (approvedRequests ?? []).length > 0
+      ? service.from("tool_requests").update({ status: "returned" }).eq("tool_id", toolId).eq("status", "approved")
       : Promise.resolve(),
   ])
 
