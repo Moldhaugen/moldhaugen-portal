@@ -35,6 +35,26 @@ export async function updateProfile(formData: FormData) {
   return { success: true, emailConfirmationPending }
 }
 
+export async function changePassword(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const currentPassword = formData.get("current_password") as string
+  const newPassword = formData.get("new_password") as string
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: currentPassword,
+  })
+  if (signInError) return { error: "Nåværende passord er feil" }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) return { error: error.message }
+
+  return { success: true }
+}
+
 export async function uploadAvatar(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

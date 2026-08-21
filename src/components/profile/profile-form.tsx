@@ -2,13 +2,13 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { updateProfile, uploadAvatar } from "@/app/(dashboard)/profile/actions"
+import { updateProfile, uploadAvatar, changePassword } from "@/app/(dashboard)/profile/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Camera, Loader2 } from "lucide-react"
+import { Camera, Loader2, KeyRound } from "lucide-react"
 import { PushSubscribeButton } from "@/components/push/push-subscribe-button"
 import type { Profile } from "@/types"
 
@@ -18,9 +18,12 @@ export function ProfileForm({ profile, email }: Props) {
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null)
   const [profileLoading, setProfileLoading] = useState(false)
   const [avatarLoading, setAvatarLoading] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [avatarMsg, setAvatarMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const passwordFormRef = useRef<HTMLFormElement>(null)
   const currentEmail = profile?.email ?? email
 
   const displayName = profile?.full_name ?? email
@@ -61,6 +64,25 @@ export function ProfileForm({ profile, email }: Props) {
       setAvatarMsg({ type: "success", text: "Profilbilde oppdatert!" })
     }
     setAvatarLoading(false)
+  }
+
+  async function handlePassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setPasswordMsg(null)
+    const fd = new FormData(e.currentTarget)
+    if (fd.get("new_password") !== fd.get("confirm_password")) {
+      setPasswordMsg({ type: "error", text: "Passordene stemmer ikke overens" })
+      return
+    }
+    setPasswordLoading(true)
+    const result = await changePassword(fd)
+    if (result.error) {
+      setPasswordMsg({ type: "error", text: result.error })
+    } else {
+      setPasswordMsg({ type: "success", text: "Passord oppdatert!" })
+      passwordFormRef.current?.reset()
+    }
+    setPasswordLoading(false)
   }
 
   return (
@@ -200,6 +222,44 @@ export function ProfileForm({ profile, email }: Props) {
             <p className="text-sm font-medium mb-2">Denne enheten</p>
             <PushSubscribeButton />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Password */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-muted-foreground" />
+            Endre passord
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form ref={passwordFormRef} onSubmit={handlePassword} className="space-y-4">
+            {passwordMsg && (
+              <div className={`rounded-md px-3 py-2 text-sm ${
+                passwordMsg.type === "error"
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-green-50 text-green-700 border border-green-200"
+              }`}>
+                {passwordMsg.text}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="current_password">Nåværende passord</Label>
+              <Input id="current_password" name="current_password" type="password" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Nytt passord</Label>
+              <Input id="new_password" name="new_password" type="password" minLength={6} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Bekreft nytt passord</Label>
+              <Input id="confirm_password" name="confirm_password" type="password" minLength={6} required />
+            </div>
+            <Button type="submit" disabled={passwordLoading}>
+              {passwordLoading ? "Oppdaterer…" : "Oppdater passord"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
