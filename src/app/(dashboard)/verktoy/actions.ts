@@ -383,6 +383,7 @@ export async function returnTool(toolId: string) {
   if (!tool) return { error: "Verktøy ikke funnet" }
 
   const isOwner = tool.user_id === user.id
+  console.log("[returnTool] userId:", user.id, "tool.user_id:", tool.user_id, "isOwner:", isOwner, "approvedRequest:", approvedRequest)
 
   if (!isOwner && approvedRequest?.requester_id !== user.id) {
     return { error: "Ikke autorisert" }
