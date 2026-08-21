@@ -8,7 +8,7 @@ import { sendPushToUsers } from "@/lib/push"
 
 async function broadcastToolUpdate() {
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +17,8 @@ async function broadcastToolUpdate() {
       },
       body: JSON.stringify({ messages: [{ topic: "realtime:verktoy", event: "refresh", payload: {} }] }),
     })
-  } catch { /* non-critical */ }
+    console.log("[broadcast] status:", res.status, await res.text())
+  } catch (e) { console.error("[broadcast] failed:", e) }
 }
 
 export async function addTool(formData: FormData) {

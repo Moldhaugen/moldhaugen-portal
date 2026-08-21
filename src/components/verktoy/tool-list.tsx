@@ -483,8 +483,11 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
     const supabase = createClient()
     const channel = supabase
       .channel("verktoy")
-      .on("broadcast", { event: "refresh" }, () => router.refresh())
-      .subscribe()
+      .on("broadcast", { event: "refresh" }, () => {
+        console.log("[realtime] broadcast received → refreshing")
+        router.refresh()
+      })
+      .subscribe((status) => console.log("[realtime] status:", status))
     return () => { supabase.removeChannel(channel) }
   }, [router])
 
