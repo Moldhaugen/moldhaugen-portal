@@ -39,6 +39,9 @@ export async function proxy(request: NextRequest) {
     "/reset-password",
     "/pending",
     "/api/auth",
+    "/api/icons",
+    "/manifest.json",
+    "/sw.js",
   ]
   const isPublicPath = publicPaths.some((p) => pathname.startsWith(p))
 
