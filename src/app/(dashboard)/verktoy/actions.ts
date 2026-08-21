@@ -369,9 +369,11 @@ export async function returnTool(toolId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Ikke innlogget" }
 
+  // Use service client for reads so RLS doesn't silently filter out rows
+  const service = createServiceClient()
   const [{ data: tool }, { data: approvedRequest }] = await Promise.all([
-    supabase.from("tools").select("user_id, name").eq("id", toolId).single(),
-    supabase.from("tool_requests")
+    service.from("tools").select("user_id, name").eq("id", toolId).single(),
+    service.from("tool_requests")
       .select("id, requester_id")
       .eq("tool_id", toolId)
       .eq("status", "approved")

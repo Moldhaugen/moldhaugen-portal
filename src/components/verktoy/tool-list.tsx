@@ -339,9 +339,10 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
             disabled={returning}
             onClick={async () => {
               setReturning(true)
+              const result = await returnTool(tool.id)
+              setReturning(false)
+              if (result?.error) { alert(result.error); return }
               onDone()
-              router.refresh()
-              await returnTool(tool.id)
               router.refresh()
             }}
           >
