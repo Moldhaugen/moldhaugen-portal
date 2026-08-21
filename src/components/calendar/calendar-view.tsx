@@ -27,7 +27,7 @@ type ListItem =
 
 export function CalendarView({ events, assignments, currentUserId }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
+  const [selectedDay, setSelectedDay] = useState<Date | null>(new Date())
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth)

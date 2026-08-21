@@ -206,22 +206,18 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
           <div className="pt-2 border-t border-border space-y-2">
             <div className="space-y-1">
               <Label className="text-xs">Hvem vil du låne til?</Label>
-              <div className="max-h-44 overflow-y-auto space-y-1 rounded-md border border-border p-1">
+              <select
+                className="w-full h-8 rounded-md border border-border bg-background px-2 text-sm"
+                value={selectedBorrowerId}
+                onChange={(e) => setSelectedBorrowerId(e.target.value)}
+              >
+                <option value="">Velg nabo…</option>
                 {residents.filter((p) => p.id !== tool.user_id).map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setSelectedBorrowerId(p.id)}
-                    className={`w-full text-left px-3 py-1.5 text-sm rounded transition-colors ${
-                      selectedBorrowerId === p.id
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    }`}
-                  >
+                  <option key={p.id} value={p.id}>
                     {p.full_name ?? "Ukjent"}{p.unit_number ? ` · nr. ${p.unit_number}` : ""}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
             <p className="text-xs text-muted-foreground">De får varsel og må bekrefte at de har det.</p>
             <div className="flex gap-2">
