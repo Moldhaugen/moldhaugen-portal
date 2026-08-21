@@ -205,20 +205,23 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
         {open && (
           <div className="pt-2 border-t border-border space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`borrower-${tool.id}`} className="text-xs">Hvem vil du låne til?</Label>
-              <select
-                id={`borrower-${tool.id}`}
-                value={selectedBorrowerId}
-                onChange={(e) => setSelectedBorrowerId(e.target.value)}
-                className="h-8 w-full rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">Velg person…</option>
+              <Label className="text-xs">Hvem vil du låne til?</Label>
+              <div className="max-h-44 overflow-y-auto space-y-1 rounded-md border border-border p-1">
                 {residents.filter((p) => p.id !== tool.user_id).map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedBorrowerId(p.id)}
+                    className={`w-full text-left px-3 py-1.5 text-sm rounded transition-colors ${
+                      selectedBorrowerId === p.id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted"
+                    }`}
+                  >
                     {p.full_name ?? "Ukjent"}{p.unit_number ? ` · nr. ${p.unit_number}` : ""}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">De får varsel og må bekrefte at de har det.</p>
             <div className="flex gap-2">
