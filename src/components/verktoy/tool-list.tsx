@@ -367,6 +367,10 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 
   const today = new Date().toISOString().split("T")[0]
 
+  const dayAfterLoan = tool.loan_until
+    ? new Date(new Date(tool.loan_until).getTime() + 86_400_000).toISOString().split("T")[0]
+    : null
+
   async function buildAndSend(from: string, until: string) {
     setError(null)
     if (!message.trim()) { setError("Fyll ut melding"); return }
@@ -385,8 +389,10 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 
   return (
     <div className="pt-2 border-t border-border space-y-2">
-      {!tool.available && (
-        <p className="text-xs text-amber-500">Verktøyet er for øyeblikket utlånt – du kan likevel reservere det for en fremtidig dato.</p>
+      {!tool.available && tool.loan_from && tool.loan_until && (
+        <p className="text-xs text-amber-500">
+          Utlånt {formatDate(tool.loan_from)}–{formatDate(tool.loan_until)} – velg datoer etter dette.
+        </p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="space-y-1">
@@ -399,7 +405,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
           <Input
             type="date"
             value={borrowFrom}
-            min={today}
+            min={dayAfterLoan ?? today}
             onChange={(e) => {
               const val = e.target.value
               setBorrowFrom(val)
@@ -410,7 +416,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Til</Label>
-          <Input type="date" value={borrowUntil} min={borrowFrom || today} onChange={(e) => setBorrowUntil(e.target.value)} className="h-8 text-sm" />
+          <Input type="date" value={borrowUntil} min={borrowFrom || dayAfterLoan || today} onChange={(e) => setBorrowUntil(e.target.value)} className="h-8 text-sm" />
         </div>
       </div>
       <div className="flex gap-2 flex-wrap">

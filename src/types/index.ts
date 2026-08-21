@@ -79,6 +79,8 @@ export type Tool = {
   available: boolean
   borrowed_by_name: string | null
   image_url: string | null
+  loan_from: string | null
+  loan_until: string | null
   created_at: string
   updated_at: string
   profile?: Pick<Profile, "id" | "full_name" | "unit_number" | "phone_number" | "email">

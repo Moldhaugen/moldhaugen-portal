@@ -37,7 +37,7 @@ export default async function VerktoyPage() {
       : Promise.resolve({ data: [] }),
     supabase
       .from("tool_requests")
-      .select("tool_id")
+      .select("tool_id, borrow_from, borrow_until")
       .eq("status", "approved")
       .lte("borrow_from", today)
       .gte("borrow_until", today),
@@ -48,11 +48,17 @@ export default async function VerktoyPage() {
       .order("full_name"),
   ])
 
-  const activeLoanToolIds = new Set((activeLoans ?? []).map((r: { tool_id: string }) => r.tool_id))
-  const processedTools = (tools ?? []).map((tool) => ({
-    ...tool,
-    available: activeLoanToolIds.has(tool.id) ? false : tool.available,
-  }))
+  type LoanInfo = { tool_id: string; borrow_from: string; borrow_until: string }
+  const activeLoanMap = new Map((activeLoans ?? []).map((r: LoanInfo) => [r.tool_id, r]))
+  const processedTools = (tools ?? []).map((tool) => {
+    const loan = activeLoanMap.get(tool.id)
+    return {
+      ...tool,
+      available: loan ? false : tool.available,
+      loan_from: loan?.borrow_from ?? null,
+      loan_until: loan?.borrow_until ?? null,
+    }
+  })
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
