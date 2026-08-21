@@ -33,8 +33,8 @@ export default function SignupPage() {
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Konto opprettet!</h2>
-            <p className="text-sm text-muted-foreground">Sjekk e-posten din for å bekrefte adressen.</p>
             <p className="text-sm text-muted-foreground">En administrator vil sjekke og slippe deg inn.</p>
+            <p className="text-sm text-muted-foreground">Du får en epost når dette er gjort.</p>
           </div>
           <Link href="/login" className="text-sm text-primary hover:underline mt-2">
             Tilbake til innlogging
