@@ -9,13 +9,12 @@ import { sendPushToUsers } from "@/lib/push"
 async function broadcastToolUpdate() {
   try {
     const supabase = createServiceClient()
-    const result = await supabase.channel("verktoy").send({
+    await supabase.channel("verktoy").send({
       type: "broadcast",
       event: "refresh",
       payload: {},
     })
-    console.log("[broadcast] result:", result)
-  } catch (e) { console.error("[broadcast] failed:", e) }
+  } catch { /* non-critical */ }
 }
 
 export async function addTool(formData: FormData) {

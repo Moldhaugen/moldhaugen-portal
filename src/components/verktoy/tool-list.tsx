@@ -483,12 +483,10 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
     const supabase = createClient()
     const channel = supabase
       .channel("verktoy")
-      .on("broadcast", { event: "refresh" }, () => {
-        console.log("[realtime] broadcast received → refreshing")
-        router.refresh()
-      })
-      .subscribe((status) => console.log("[realtime] status:", status))
-    return () => { supabase.removeChannel(channel) }
+      .on("broadcast", { event: "refresh" }, () => router.refresh())
+      .subscribe()
+    const poll = setInterval(() => router.refresh(), 5_000)
+    return () => { supabase.removeChannel(channel); clearInterval(poll) }
   }, [router])
 
   const myTools = optimisticTools.filter((t) => t.user_id === currentUserId)
