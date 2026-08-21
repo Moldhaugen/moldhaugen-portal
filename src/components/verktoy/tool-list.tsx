@@ -478,7 +478,7 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [optimisticTools, setOptimisticTools] = useState(tools)
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const supabase = createClient()
@@ -490,8 +490,8 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
     return () => { supabase.removeChannel(channel); clearInterval(poll) }
   }, [router])
 
-  const myTools = optimisticTools.filter((t) => t.user_id === currentUserId)
-  const othersTools = optimisticTools.filter((t) => t.user_id !== currentUserId)
+  const myTools = tools.filter((t) => t.user_id === currentUserId && !deletedIds.has(t.id))
+  const othersTools = tools.filter((t) => t.user_id !== currentUserId && !deletedIds.has(t.id))
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -503,7 +503,7 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
   }
 
   async function handleDelete(id: string) {
-    setOptimisticTools((prev) => prev.filter((t) => t.id !== id))
+    setDeletedIds((prev) => new Set([...prev, id]))
     await deleteTool(id)
     router.refresh()
   }
