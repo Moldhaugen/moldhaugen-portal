@@ -68,7 +68,7 @@ export function assignmentEmail(opts: {
   <p>${dateStr}</p>
   ${opts.notes ? `<p class="label" style="margin-top:8px">Notater</p><p>${opts.notes}</p>` : ""}
 </div>
-<a href="${opts.portalUrl}/maintenance" class="btn">Se oppgaven</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}/maintenance" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se oppgaven</a>`, opts.portalUrl)
 }
 
 export function approvalEmail(opts: { name: string; portalUrl: string }) {
@@ -76,7 +76,7 @@ export function approvalEmail(opts: { name: string; portalUrl: string }) {
 <h2>Kontoen din er godkjent!</h2>
 <p>Hei ${opts.name},</p>
 <p>Velkommen til Moldhaugen Borettslag! Kontoen din er nå godkjent og du kan logge inn i portalen.</p>
-<a href="${opts.portalUrl}/login" class="btn">Logg inn</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}/login" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Logg inn</a>`, opts.portalUrl)
 }
 
 export function eventEmail(opts: {
@@ -103,7 +103,7 @@ export function eventEmail(opts: {
   ${opts.location ? `<p class="label" style="margin-top:8px">Sted</p><p>${opts.location}</p>` : ""}
   ${opts.description ? `<p class="label" style="margin-top:8px">Beskrivelse</p><p>${opts.description}</p>` : ""}
 </div>
-<a href="${opts.portalUrl}/calendar" class="btn">Se i kalender</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}/calendar" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se i kalender</a>`, opts.portalUrl)
 }
 
 export function reminderEmail(opts: {
@@ -125,7 +125,7 @@ export function reminderEmail(opts: {
   <p class="label" style="margin-top:8px">Dato</p>
   <p>${dateStr}${timeStr ? ` kl. ${timeStr}` : ""}</p>
 </div>
-<a href="${opts.portalUrl}/maintenance" class="btn">Se oppgaven</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}/maintenance" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se oppgaven</a>`, opts.portalUrl)
 }
 
 export function bulletinPostEmail(opts: { postTitle: string; authorName: string; portalUrl: string }) {
@@ -136,7 +136,7 @@ export function bulletinPostEmail(opts: { postTitle: string; authorName: string;
   <p class="label">Innlegg</p>
   <p><strong>${opts.postTitle}</strong></p>
 </div>
-<a href="${opts.portalUrl}/oppslagstavle" class="btn">Se innlegget</a>
+<a href="${opts.portalUrl}/oppslagstavle" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se innlegget</a>
 <p style="margin-top:20px;font-size:12px;color:#a1a1aa">Du kan skru av disse varslene under <a href="${opts.portalUrl}/profile" style="color:#71717a">Min profil</a>.</p>`, opts.portalUrl)
 }
 
@@ -151,7 +151,7 @@ export function newSignupEmail(opts: { name: string; email: string; unitNumber: 
   <p>${opts.email}</p>
   ${opts.unitNumber ? `<p class="label" style="margin-top:8px">Leilighet</p><p>${opts.unitNumber}</p>` : ""}
 </div>
-<a href="${opts.portalUrl}/admin" class="btn">Gå til administrasjon</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}/admin" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Gå til administrasjon</a>`, opts.portalUrl)
 }
 
 export function announcementEmail(opts: { subject: string; body: string; senderName: string; portalUrl: string }) {
@@ -159,5 +159,5 @@ export function announcementEmail(opts: { subject: string; body: string; senderN
 <h2>${opts.subject}</h2>
 <p style="white-space:pre-wrap">${opts.body}</p>
 <p style="margin-top:20px;font-size:13px;color:#71717a">Sendt av ${opts.senderName} via Moldhaugen-portalen</p>
-<a href="${opts.portalUrl}" class="btn">Åpne portalen</a>`, opts.portalUrl)
+<a href="${opts.portalUrl}" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Åpne portalen</a>`, opts.portalUrl)
 }
