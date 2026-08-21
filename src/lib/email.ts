@@ -176,6 +176,27 @@ export function toolBorrowRequestEmail(opts: {
 <a href="${opts.portalUrl}/verktoy" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se verktøyliste</a>`, opts.portalUrl)
 }
 
+export function toolRequestApprovedEmail(opts: { toolName: string; fromDate: string; toDate: string; portalUrl: string }) {
+  return base(`
+<h2>Forespørselen din er godkjent! 🎉</h2>
+<p>Du kan låne <strong>${opts.toolName}</strong> i perioden nedenfor.</p>
+<div class="detail">
+  <p class="label">Verktøy</p>
+  <p><strong>${opts.toolName}</strong></p>
+  <p class="label" style="margin-top:8px">Periode</p>
+  <p>${opts.fromDate} – ${opts.toDate}</p>
+</div>
+<a href="${opts.portalUrl}/verktoy" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se verktøyliste</a>`, opts.portalUrl)
+}
+
+export function toolRequestDeclinedEmail(opts: { toolName: string; portalUrl: string }) {
+  return base(`
+<h2>Forespørsel om utlån</h2>
+<p>Dessverre er ikke <strong>${opts.toolName}</strong> tilgjengelig i den perioden du ønsket.</p>
+<p>Ta gjerne kontakt med eieren direkte for å finne en annen løsning.</p>
+<a href="${opts.portalUrl}/verktoy" class="btn" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em">Se verktøyliste</a>`, opts.portalUrl)
+}
+
 export function announcementEmail(opts: { subject: string; body: string; senderName: string; portalUrl: string }) {
   return base(`
 <h2>${opts.subject}</h2>

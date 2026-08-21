@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Hammer } from "lucide-react"
 import { ToolList } from "@/components/verktoy/tool-list"
-import type { Tool } from "@/types"
+import type { Tool, ToolRequest } from "@/types"
 
 export default async function VerktoyPage() {
   const supabase = await createClient()
@@ -16,6 +16,24 @@ export default async function VerktoyPage() {
     .order("available", { ascending: false })
     .order("created_at", { ascending: false })
 
+  const myToolIds = (tools ?? []).filter((t) => t.user_id === user.id).map((t) => t.id)
+
+  const [{ data: myRequests }, incomingResult] = await Promise.all([
+    supabase
+      .from("tool_requests")
+      .select("id, tool_id, message, borrow_from, borrow_until, status, created_at")
+      .eq("requester_id", user.id)
+      .order("created_at", { ascending: false }),
+    myToolIds.length > 0
+      ? supabase
+          .from("tool_requests")
+          .select("id, tool_id, requester_id, message, borrow_from, borrow_until, status, created_at, requester:profiles(id, full_name, unit_number, phone_number, email)")
+          .in("tool_id", myToolIds)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ])
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
@@ -27,7 +45,12 @@ export default async function VerktoyPage() {
           Registrer verktøy du er villig til å låne ut til naboer
         </p>
       </div>
-      <ToolList tools={(tools ?? []) as Tool[]} currentUserId={user.id} />
+      <ToolList
+        tools={(tools ?? []) as Tool[]}
+        myRequests={(myRequests ?? []) as ToolRequest[]}
+        incomingRequests={(incomingResult.data ?? []) as ToolRequest[]}
+        currentUserId={user.id}
+      />
     </div>
   )
 }

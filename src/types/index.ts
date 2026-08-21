@@ -57,6 +57,18 @@ export type MaintenancePlan = {
   assignments?: MaintenanceAssignment[]
 }
 
+export type ToolRequest = {
+  id: string
+  tool_id: string
+  requester_id: string
+  message: string
+  borrow_from: string
+  borrow_until: string
+  status: "pending" | "approved" | "declined"
+  created_at: string
+  requester?: Pick<Profile, "id" | "full_name" | "unit_number" | "phone_number" | "email">
+}
+
 export type Tool = {
   id: string
   user_id: string
