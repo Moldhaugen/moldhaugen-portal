@@ -189,6 +189,70 @@ export async function approveBorrowRequest(requestId: string) {
   return { success: true }
 }
 
+export async function returnTool(toolId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: tool } = await supabase
+    .from("tools")
+    .select("user_id, name")
+    .eq("id", toolId)
+    .single()
+
+  if (!tool) return { error: "Verktøy ikke funnet" }
+
+  const isOwner = tool.user_id === user.id
+  let approverId: string | null = null
+
+  if (!isOwner) {
+    const { data: request } = await supabase
+      .from("tool_requests")
+      .select("id, requester_id")
+      .eq("tool_id", toolId)
+      .eq("requester_id", user.id)
+      .eq("status", "approved")
+      .maybeSingle()
+
+    if (!request) return { error: "Ikke autorisert" }
+    approverId = request.requester_id
+  }
+
+  await Promise.all([
+    supabase.from("tools").update({
+      available: true,
+      borrowed_by_name: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", toolId),
+    supabase.from("tool_requests")
+      .update({ status: "returned" })
+      .eq("tool_id", toolId)
+      .eq("status", "approved"),
+  ])
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+
+  if (!isOwner) {
+    await sendPushToUsers(
+      [tool.user_id],
+      `${tool.name} er levert tilbake`,
+      "Verktøyet er markert som returnert.",
+      `${siteUrl}/verktoy`,
+    )
+  } else if (approverId) {
+    await sendPushToUsers(
+      [approverId],
+      `${tool.name} er registrert returnert`,
+      "Eieren har bekreftet at verktøyet er levert tilbake.",
+      `${siteUrl}/verktoy`,
+    )
+  }
+
+  revalidatePath("/verktoy")
+  revalidatePath("/calendar")
+  return { success: true }
+}
+
 export async function declineBorrowRequest(requestId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

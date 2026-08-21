@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest } from "@/app/(dashboard)/verktoy/actions"
+import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool } from "@/app/(dashboard)/verktoy/actions"
 import type { Tool, ToolRequest } from "@/types"
 
 type Props = {
@@ -99,9 +99,9 @@ function MyToolCard({ tool, requests, onDelete }: {
     setOpen(false)
   }
 
-  async function handleMakeAvailable() {
+  async function handleReturn() {
     setSaving(true)
-    await setToolAvailability(tool.id, true)
+    await returnTool(tool.id)
     setSaving(false)
   }
 
@@ -143,8 +143,8 @@ function MyToolCard({ tool, requests, onDelete }: {
               Lån ut {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
           ) : (
-            <button onClick={handleMakeAvailable} disabled={saving} className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
-              Tilbake
+            <button onClick={handleReturn} disabled={saving} className="text-xs text-primary hover:underline transition-colors shrink-0">
+              {saving ? "…" : "Marker returnert"}
             </button>
           )}
           <button onClick={() => onDelete(tool.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
@@ -203,24 +203,45 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [returning, setReturning] = useState(false)
+
   if (existingRequest) {
     const statusLabel = existingRequest.status === "pending"
       ? "Venter på svar"
       : existingRequest.status === "approved"
         ? "Godkjent ✓"
-        : "Avslått"
+        : existingRequest.status === "returned"
+          ? "Returnert"
+          : "Avslått"
     const statusColor = existingRequest.status === "approved"
       ? "text-green-600"
       : existingRequest.status === "declined"
         ? "text-destructive"
-        : "text-muted-foreground"
+        : existingRequest.status === "returned"
+          ? "text-muted-foreground"
+          : "text-muted-foreground"
 
     return (
-      <div className="pt-2 border-t border-border">
+      <div className="pt-2 border-t border-border space-y-2">
         <p className="text-xs text-muted-foreground">
           Din forespørsel ({formatDate(existingRequest.borrow_from)}–{formatDate(existingRequest.borrow_until)}):
           <span className={` font-medium ml-1 ${statusColor}`}>{statusLabel}</span>
         </p>
+        {existingRequest.status === "approved" && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            disabled={returning}
+            onClick={async () => {
+              setReturning(true)
+              await returnTool(tool.id)
+              setReturning(false)
+            }}
+          >
+            {returning ? "Sender…" : "Meld tilbake"}
+          </Button>
+        )}
       </div>
     )
   }
