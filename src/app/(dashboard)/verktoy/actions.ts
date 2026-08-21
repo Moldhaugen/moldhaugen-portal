@@ -378,11 +378,16 @@ export async function returnTool(toolId: string) {
 
   if (!tool) return { error: "Verktøy ikke funnet" }
 
-  const approvedRequest = approvedRequests?.[0] ?? null
   const isOwner = tool.user_id === user.id
-  const isBorrower = (approvedRequests ?? []).some((r) => r.requester_id === user.id)
+  const myApprovedRequest = (approvedRequests ?? []).find((r) => r.requester_id === user.id) ?? null
+  const isBorrower = !!myApprovedRequest
 
   if (!isOwner && !isBorrower) return { error: "Ikke autorisert" }
+
+  // Borrower returning: mark only their own request. Owner reclaiming: clear all approved requests.
+  const requestUpdate = isBorrower && !isOwner
+    ? service.from("tool_requests").update({ status: "returned" }).eq("id", myApprovedRequest!.id)
+    : service.from("tool_requests").update({ status: "returned" }).eq("tool_id", toolId).eq("status", "approved")
 
   await Promise.all([
     service.from("tools").update({
@@ -390,17 +395,16 @@ export async function returnTool(toolId: string) {
       borrowed_by_name: null,
       updated_at: new Date().toISOString(),
     }).eq("id", toolId),
-    (approvedRequests ?? []).length > 0
-      ? service.from("tool_requests").update({ status: "returned" }).eq("tool_id", toolId).eq("status", "approved")
-      : Promise.resolve(),
+    requestUpdate,
   ])
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  const otherBorrower = approvedRequests?.find((r) => r.requester_id !== user.id)
 
   if (!isOwner) {
     await sendPushToUsers([tool.user_id], `${tool.name} er levert tilbake`, "Verktøyet er markert som returnert.", `${siteUrl}/verktoy`)
-  } else if (approvedRequest?.requester_id) {
-    await sendPushToUsers([approvedRequest.requester_id], `${tool.name} er registrert returnert`, "Eieren har bekreftet at verktøyet er levert tilbake.", `${siteUrl}/verktoy`)
+  } else if (otherBorrower?.requester_id) {
+    await sendPushToUsers([otherBorrower.requester_id], `${tool.name} er registrert returnert`, "Eieren har bekreftet at verktøyet er levert tilbake.", `${siteUrl}/verktoy`)
   }
 
   revalidatePath("/verktoy")
