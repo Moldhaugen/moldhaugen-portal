@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -11,6 +12,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EventCard } from "./event-card"
 import { AssignmentCalendarCard } from "./assignment-calendar-card"
+import { createClient } from "@/lib/supabase/client"
 import type { Event as CalEvent, MaintenanceAssignment } from "@/types"
 
 const WEEKDAYS = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"]
@@ -26,8 +28,19 @@ type ListItem =
   | { type: "assignment"; date: Date; data: MaintenanceAssignment }
 
 export function CalendarView({ events, assignments, currentUserId }: Props) {
+  const router = useRouter()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(new Date())
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel("calendar")
+      .on("broadcast", { event: "refresh" }, () => router.refresh())
+      .subscribe()
+    const poll = setInterval(() => router.refresh(), 5_000)
+    return () => { supabase.removeChannel(channel); clearInterval(poll) }
+  }, [router])
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth)

@@ -1,9 +1,17 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { revalidatePath } from "next/cache"
 import { sendEmail, eventEmail } from "@/lib/email"
 import { sendPushToUsers } from "@/lib/push"
+
+async function broadcastCalendarUpdate() {
+  try {
+    const supabase = createServiceClient()
+    await supabase.channel("calendar").send({ type: "broadcast", event: "refresh", payload: {} })
+  } catch { /* non-critical */ }
+}
 
 export async function createEvent(formData: FormData) {
   const supabase = await createClient()
@@ -72,6 +80,7 @@ export async function createEvent(formData: FormData) {
   }
 
   revalidatePath("/calendar")
+  await broadcastCalendarUpdate()
   return { success: true }
 }
 
@@ -88,5 +97,6 @@ export async function deleteEvent(id: string) {
 
   if (error) return { error: error.message }
   revalidatePath("/calendar")
+  await broadcastCalendarUpdate()
   return { success: true }
 }
