@@ -30,7 +30,7 @@
 
 ### Local (`.env.local`)
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- `RESEND_API_KEY`, `EMAIL_FROM`
+- `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_EMAIL`
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 - `CRON_SECRET` — shared secret for the hourly reminder cron endpoint
@@ -47,5 +47,4 @@ All of the above, plus confirm `NEXT_PUBLIC_SITE_URL` points to the live deploym
 
 ## TODOs
 
-- [ ] **Verify Resend domain** to enable email delivery to real residents. Currently in test mode — only delivers to `moldhaugen@robinfosse.com`. Go to resend.com → Domains → verify `robinfosse.com`, then set `EMAIL_FROM=Moldhaugen <noreply@robinfosse.com>` in `.env.local` and Vercel env vars.
 - [ ] **Run `supabase/migration_reminders.sql`** in Supabase SQL editor to add `scheduled_time`, `reminder_day_before_sent_at`, `reminder_on_day_sent_at` columns to `maintenance_assignments`.

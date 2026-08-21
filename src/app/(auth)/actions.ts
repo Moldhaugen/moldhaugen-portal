@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { sendEmail, newSignupEmail } from "@/lib/email"
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -29,6 +30,16 @@ export async function signup(formData: FormData) {
     },
   })
   if (error) return { error: error.message }
+
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (adminEmail) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+    await sendEmail(
+      adminEmail,
+      "Ny bruker venter på godkjenning",
+      newSignupEmail({ name: fullName, email, unitNumber, portalUrl: siteUrl })
+    )
+  }
 
   return { success: "Sjekk e-posten din for å bekrefte kontoen." }
 }

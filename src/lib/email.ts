@@ -140,6 +140,20 @@ export function bulletinPostEmail(opts: { postTitle: string; authorName: string;
 <p style="margin-top:20px;font-size:12px;color:#a1a1aa">Du kan skru av disse varslene under <a href="${opts.portalUrl}/profile" style="color:#71717a">Min profil</a>.</p>`, opts.portalUrl)
 }
 
+export function newSignupEmail(opts: { name: string; email: string; unitNumber: string; portalUrl: string }) {
+  return base(`
+<h2>Ny bruker venter på godkjenning</h2>
+<p>En ny bruker har registrert seg på Moldhaugen-portalen.</p>
+<div class="detail">
+  <p class="label">Navn</p>
+  <p><strong>${opts.name}</strong></p>
+  <p class="label" style="margin-top:8px">E-post</p>
+  <p>${opts.email}</p>
+  ${opts.unitNumber ? `<p class="label" style="margin-top:8px">Leilighetsnummer</p><p>${opts.unitNumber}</p>` : ""}
+</div>
+<a href="${opts.portalUrl}/admin" class="btn">Gå til administrasjon</a>`, opts.portalUrl)
+}
+
 export function announcementEmail(opts: { subject: string; body: string; senderName: string; portalUrl: string }) {
   return base(`
 <h2>${opts.subject}</h2>
