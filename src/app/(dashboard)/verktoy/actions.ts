@@ -200,7 +200,31 @@ export async function approveBorrowRequest(requestId: string) {
     .neq("id", requestId)
     .maybeSingle()
 
-  if (conflict) return { error: "Verktøyet er allerede godkjent for utlån i denne perioden" }
+  if (conflict) {
+    // Auto-decline and notify the requester with the specific reason
+    const siteUrlConflict = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+    await service.from("tool_requests").update({ status: "declined" }).eq("id", requestId)
+    if (requester) {
+      await Promise.all([
+        requester.email && requester.email_tool_notifications !== false
+          ? sendEmail(
+              requester.email,
+              `Forespørsel om ${tool!.name}`,
+              toolRequestDeclinedEmail({ toolName: tool!.name, portalUrl: siteUrlConflict })
+            )
+          : Promise.resolve(),
+        sendPushToUsers(
+          [requester.id],
+          `Forespørsel om ${tool!.name}`,
+          "Verktøyet er allerede reservert for den perioden.",
+          `${siteUrlConflict}/verktoy`,
+        ),
+      ])
+    }
+    revalidatePath("/verktoy")
+    await broadcastToolUpdate()
+    return { conflictDeclined: true }
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
   const fromDate = new Date(request.borrow_from + "T12:00:00Z").toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })

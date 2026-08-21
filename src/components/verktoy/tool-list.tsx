@@ -174,6 +174,7 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
   async function handleApprove(requestId: string): Promise<string | null> {
     const result = await approveBorrowRequest(requestId)
     if (result?.error) return result.error
+    // both approved and conflict-auto-declined: request is resolved, remove card
     setLocalPending((prev) => prev.filter((r) => r.id !== requestId))
     router.refresh()
     return null
