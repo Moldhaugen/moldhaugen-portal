@@ -90,6 +90,44 @@ Key files:
 
 The `beforeinstallprompt` event (seen in browser logs as "Banner not shown: beforeinstallpromptEvent.preventDefault() called") means the PWA install criteria are met but the prompt was suppressed — this is normal if no custom install button is wired up.
 
+## Realtime coverage
+
+Pages with live updates (polling + broadcast, `force-dynamic`):
+- `/verktoy` — channel `"verktoy"`; mutations also notify `"calendar"` channel since borrow approval creates calendar events
+- `/calendar` — channel `"calendar"`
+
+Pages without live updates (manual refresh only):
+- `/info`, `/maintenance`, `/oppslagstavle`, `/beboere`, `/admin`
+
+## Styret (board members) — `/info` page
+
+`board_members` table (requires manual SQL migration — see below). Shown as a card at the top of the Nyttig info page.
+- Admin can add (resident dropdown + free-text role), edit role inline (pencil → input → Enter/Escape), and remove members
+- Non-admins see name, role, phone, email (read-only)
+- Actions: `addBoardMember`, `updateBoardMember`, `removeBoardMember` in `src/app/(dashboard)/info/actions.ts`
+- Component: `src/components/info/styret-card.tsx`
+
+### SQL to run in Supabase SQL editor
+
+```sql
+-- board_members
+CREATE TABLE IF NOT EXISTS board_members (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE board_members ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Approved users can view board members"
+  ON board_members FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_approved = true));
+CREATE POLICY "Admins can manage board members"
+  ON board_members FOR ALL TO authenticated
+  USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true))
+  WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+```
+
 ## TODOs
 
 - [ ] **Run `supabase/migration_reminders.sql`** in Supabase SQL editor to add `scheduled_time`, `reminder_day_before_sent_at`, `reminder_on_day_sent_at` columns to `maintenance_assignments`.
+- [ ] **Run board_members SQL** above if not already done.
