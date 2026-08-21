@@ -241,7 +241,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
   existingRequest?: ToolRequest
   onDone: () => void
 }) {
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState(`Hei! Kan jeg låne ${tool.name}?`)
   const [borrowFrom, setBorrowFrom] = useState("")
   const [borrowUntil, setBorrowUntil] = useState("")
   const router = useRouter()
