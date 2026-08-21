@@ -142,6 +142,7 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
   const [showRequests, setShowRequests] = useState(pendingRequests.length > 0)
   const [selectedBorrowerId, setSelectedBorrowerId] = useState("")
   const [saving, setSaving] = useState(false)
+  const [returningId, setReturningId] = useState<string | null>(null)
   const [assignError, setAssignError] = useState<string | null>(null)
   const [localPending, setLocalPending] = useState(pendingRequests)
 
@@ -163,10 +164,10 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
     router.refresh()
   }
 
-  async function handleReturn() {
-    setSaving(true)
+  async function handleReturn(reqId: string) {
+    setReturningId(reqId)
     const result = await returnTool(tool.id)
-    setSaving(false)
+    setReturningId(null)
     if (result?.error) { alert(result.error); return }
     router.refresh()
   }
@@ -215,11 +216,12 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
             <button onClick={() => setOpen(!open)} className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-0.5">
               Lån ut {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
-          ) : (
-            <button onClick={handleReturn} disabled={saving} className="text-xs text-primary hover:underline transition-colors shrink-0">
-              {saving ? "…" : "Marker returnert"}
+          ) : !requests.some((r) => r.status === "approved") ? (
+            // Fallback: tool is unavailable but no tracked request (e.g. set via old flow)
+            <button onClick={() => handleReturn("global")} disabled={returningId !== null} className="text-xs text-primary hover:underline transition-colors shrink-0">
+              {returningId === "global" ? "…" : "Marker returnert"}
             </button>
-          )}
+          ) : null}
           <button onClick={() => onDelete(tool.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
             <Trash2 className="h-4 w-4" />
           </button>
@@ -271,8 +273,8 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
           <div className="pt-2 border-t border-border space-y-1">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Timeplan</p>
             {requests.map((req) => (
-              <div key={req.id} className="flex items-center justify-between gap-2 text-xs py-1">
-                <span className="font-medium truncate">{req.requester?.full_name ?? "Ukjent"}</span>
+              <div key={req.id} className="flex items-center gap-2 text-xs py-1">
+                <span className="font-medium truncate flex-1">{req.requester?.full_name ?? "Ukjent"}</span>
                 <span className="text-muted-foreground shrink-0">{formatDate(req.borrow_from)} – {formatDate(req.borrow_until)}</span>
                 <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-xs font-medium ${
                   req.status === "approved"
@@ -281,6 +283,15 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
                 }`}>
                   {req.status === "approved" ? "Aktiv" : "Venter"}
                 </span>
+                {req.status === "approved" && (
+                  <button
+                    onClick={() => handleReturn(req.id)}
+                    disabled={returningId !== null}
+                    className="text-xs text-primary hover:underline shrink-0"
+                  >
+                    {returningId === req.id ? "…" : "Marker returnert"}
+                  </button>
+                )}
               </div>
             ))}
           </div>
