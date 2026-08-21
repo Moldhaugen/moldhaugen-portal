@@ -136,6 +136,9 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
   const [assignError, setAssignError] = useState<string | null>(null)
   const [localRequests, setLocalRequests] = useState(requests)
 
+  useEffect(() => { setLocalRequests(requests) }, [requests])
+  useEffect(() => { if (requests.length > 0) setShowRequests(true) }, [requests])
+
   async function handleAssign() {
     if (!selectedBorrowerId) return
     setAssignError(null)
