@@ -66,6 +66,7 @@ export type ToolRequest = {
   borrow_from: string
   borrow_until: string
   status: "pending" | "approved" | "declined" | "returned"
+  owner_initiated: boolean
   created_at: string
   requester?: Pick<Profile, "id" | "full_name" | "unit_number" | "phone_number" | "email">
 }

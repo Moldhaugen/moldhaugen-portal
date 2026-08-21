@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool, uploadToolImage } from "@/app/(dashboard)/verktoy/actions"
+import { addTool, deleteTool, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool, uploadToolImage, assignToolToBorrower, acceptToolAssignment, declineToolAssignment } from "@/app/(dashboard)/verktoy/actions"
 import type { Tool, ToolRequest, ProfileSummary } from "@/types"
 
 type Props = {
@@ -130,15 +130,17 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showRequests, setShowRequests] = useState(requests.length > 0)
-  const [borrowedByName, setBorrowedByName] = useState(tool.borrowed_by_name ?? "")
+  const [selectedBorrowerId, setSelectedBorrowerId] = useState("")
   const [saving, setSaving] = useState(false)
   const [localRequests, setLocalRequests] = useState(requests)
 
-  async function handleMakeUnavailable() {
+  async function handleAssign() {
+    if (!selectedBorrowerId) return
     setSaving(true)
-    await setToolAvailability(tool.id, false, borrowedByName)
+    await assignToolToBorrower(tool.id, selectedBorrowerId)
     setSaving(false)
     setOpen(false)
+    setSelectedBorrowerId("")
     router.refresh()
   }
 
@@ -203,24 +205,25 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
         {open && (
           <div className="pt-2 border-t border-border space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`borrower-${tool.id}`} className="text-xs">Hvem låner den?</Label>
+              <Label htmlFor={`borrower-${tool.id}`} className="text-xs">Hvem vil du låne til?</Label>
               <select
                 id={`borrower-${tool.id}`}
-                value={borrowedByName}
-                onChange={(e) => setBorrowedByName(e.target.value)}
+                value={selectedBorrowerId}
+                onChange={(e) => setSelectedBorrowerId(e.target.value)}
                 className="h-8 w-full rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="">Velg person…</option>
                 {residents.filter((p) => p.id !== tool.user_id).map((p) => (
-                  <option key={p.id} value={p.full_name ?? ""}>
+                  <option key={p.id} value={p.id}>
                     {p.full_name ?? "Ukjent"}{p.unit_number ? ` · nr. ${p.unit_number}` : ""}
                   </option>
                 ))}
               </select>
             </div>
+            <p className="text-xs text-muted-foreground">De får varsel og må bekrefte at de har det.</p>
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleMakeUnavailable} disabled={saving}>
-                {saving ? "Lagrer…" : "Marker som utlånt"}
+              <Button size="sm" onClick={handleAssign} disabled={saving || !selectedBorrowerId}>
+                {saving ? "Sender…" : "Send forespørsel"}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Avbryt</Button>
             </div>
@@ -259,8 +262,50 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
   const [error, setError] = useState<string | null>(null)
 
   const [returning, setReturning] = useState(false)
+  const [accepting, setAccepting] = useState(false)
+  const [declining, setDeclining] = useState(false)
 
   if (existingRequest) {
+    // Owner offered this tool to the current user — show confirm/decline
+    if (existingRequest.owner_initiated && existingRequest.status === "pending") {
+      return (
+        <div className="pt-2 border-t border-border space-y-2">
+          <p className="text-xs text-muted-foreground">Eieren ønsker å låne deg dette verktøyet.</p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              disabled={accepting || declining}
+              onClick={async () => {
+                setAccepting(true)
+                onDone()
+                router.refresh()
+                await acceptToolAssignment(existingRequest.id)
+                router.refresh()
+              }}
+            >
+              {accepting ? "…" : "Bekreft mottak"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              disabled={accepting || declining}
+              onClick={async () => {
+                setDeclining(true)
+                onDone()
+                router.refresh()
+                await declineToolAssignment(existingRequest.id)
+                router.refresh()
+              }}
+            >
+              {declining ? "…" : "Avslå"}
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
     const statusLabel = existingRequest.status === "pending"
       ? "Venter på svar"
       : existingRequest.status === "approved"
@@ -371,7 +416,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 }
 
 function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolRequest }) {
-  const activeRequest = myRequest?.status === "pending" || myRequest?.status === "approved" ? myRequest : undefined
+  const activeRequest = (myRequest?.status === "pending" || myRequest?.status === "approved") ? myRequest : undefined
   const [requesting, setRequesting] = useState(!!activeRequest)
 
   const canOpen = tool.available && !requesting

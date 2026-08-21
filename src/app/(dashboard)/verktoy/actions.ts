@@ -235,6 +235,113 @@ export async function approveBorrowRequest(requestId: string) {
   return { success: true }
 }
 
+export async function assignToolToBorrower(toolId: string, borrowerId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: tool } = await supabase
+    .from("tools")
+    .select("name, user_id")
+    .eq("id", toolId)
+    .single()
+
+  if (!tool || tool.user_id !== user.id) return { error: "Ikke autorisert" }
+
+  const today = new Date().toISOString().split("T")[0]
+
+  const { error } = await supabase
+    .from("tool_requests")
+    .insert({ tool_id: toolId, requester_id: borrowerId, message: "Tilbudt av eier", borrow_from: today, borrow_until: today, owner_initiated: true })
+
+  if (error) return { error: error.message }
+
+  const { data: borrower } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", borrowerId)
+    .single()
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  await sendPushToUsers(
+    [borrowerId],
+    `Tilbud: ${tool.name}`,
+    `Du er tilbudt å låne ${tool.name}. Bekreft mottak i portalen.`,
+    `${siteUrl}/verktoy`,
+  )
+
+  revalidatePath("/verktoy")
+  return { success: true }
+}
+
+export async function acceptToolAssignment(requestId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: request } = await supabase
+    .from("tool_requests")
+    .select("*, tool:tools(id, name, user_id)")
+    .eq("id", requestId)
+    .single()
+
+  if (!request || request.requester_id !== user.id || !request.owner_initiated) return { error: "Ikke autorisert" }
+
+  const tool = request.tool as unknown as { id: string; name: string; user_id: string }
+  const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).single()
+
+  const service = createServiceClient()
+  await Promise.all([
+    service.from("tool_requests").update({ status: "approved" }).eq("id", requestId),
+    service.from("tools").update({
+      available: false,
+      borrowed_by_name: profile?.full_name ?? null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", tool.id),
+  ])
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  await sendPushToUsers(
+    [tool.user_id],
+    `${tool.name} bekreftet mottatt`,
+    `${profile?.full_name ?? "En nabo"} har bekreftet at de har ${tool.name}.`,
+    `${siteUrl}/verktoy`,
+  )
+
+  revalidatePath("/verktoy")
+  return { success: true }
+}
+
+export async function declineToolAssignment(requestId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: request } = await supabase
+    .from("tool_requests")
+    .select("requester_id, owner_initiated, tool:tools(name, user_id)")
+    .eq("id", requestId)
+    .single()
+
+  if (!request || request.requester_id !== user.id || !request.owner_initiated) return { error: "Ikke autorisert" }
+
+  const tool = request.tool as unknown as { name: string; user_id: string }
+
+  const service = createServiceClient()
+  await service.from("tool_requests").update({ status: "declined" }).eq("id", requestId)
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  await sendPushToUsers(
+    [tool.user_id],
+    `${tool.name}: tilbud avslått`,
+    "Personen du tilbød verktøyet til har avslått.",
+    `${siteUrl}/verktoy`,
+  )
+
+  revalidatePath("/verktoy")
+  return { success: true }
+}
+
 export async function returnTool(toolId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

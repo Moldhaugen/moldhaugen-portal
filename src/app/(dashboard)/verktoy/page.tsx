@@ -22,7 +22,7 @@ export default async function VerktoyPage() {
   const [{ data: myRequests }, incomingResult, { data: activeLoans }, { data: residents }] = await Promise.all([
     supabase
       .from("tool_requests")
-      .select("id, tool_id, message, borrow_from, borrow_until, status, created_at")
+      .select("id, tool_id, requester_id, message, borrow_from, borrow_until, status, owner_initiated, created_at")
       .eq("requester_id", user.id)
       .order("created_at", { ascending: false }),
     myToolIds.length > 0
