@@ -132,13 +132,16 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
   const [showRequests, setShowRequests] = useState(requests.length > 0)
   const [selectedBorrowerId, setSelectedBorrowerId] = useState("")
   const [saving, setSaving] = useState(false)
+  const [assignError, setAssignError] = useState<string | null>(null)
   const [localRequests, setLocalRequests] = useState(requests)
 
   async function handleAssign() {
     if (!selectedBorrowerId) return
+    setAssignError(null)
     setSaving(true)
-    await assignToolToBorrower(tool.id, selectedBorrowerId)
+    const result = await assignToolToBorrower(tool.id, selectedBorrowerId)
     setSaving(false)
+    if (result?.error) { setAssignError(result.error); return }
     setOpen(false)
     setSelectedBorrowerId("")
     router.refresh()
@@ -219,6 +222,7 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
                 ))}
               </select>
             </div>
+            {assignError && <p className="text-xs text-destructive">{assignError}</p>}
             <p className="text-xs text-muted-foreground">De får varsel og må bekrefte at de har det.</p>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleAssign} disabled={saving || !selectedBorrowerId}>

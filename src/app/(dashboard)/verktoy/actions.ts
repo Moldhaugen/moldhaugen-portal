@@ -250,7 +250,10 @@ export async function assignToolToBorrower(toolId: string, borrowerId: string) {
 
   const today = new Date().toISOString().split("T")[0]
 
-  const { error } = await supabase
+  // Use service client: INSERT policy on tool_requests checks requester_id = auth.uid(),
+  // but here the owner is creating a request on the borrower's behalf.
+  const service = createServiceClient()
+  const { error } = await service
     .from("tool_requests")
     .insert({ tool_id: toolId, requester_id: borrowerId, message: "Tilbudt av eier", borrow_from: today, borrow_until: today, owner_initiated: true })
 
