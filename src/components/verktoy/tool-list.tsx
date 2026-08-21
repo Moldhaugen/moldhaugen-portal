@@ -482,9 +482,8 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
-      .channel("tool-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "tools" }, () => router.refresh())
-      .on("postgres_changes", { event: "*", schema: "public", table: "tool_requests" }, () => router.refresh())
+      .channel("verktoy")
+      .on("broadcast", { event: "refresh" }, () => router.refresh())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [router])

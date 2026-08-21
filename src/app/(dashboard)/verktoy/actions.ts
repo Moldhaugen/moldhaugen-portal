@@ -6,6 +6,20 @@ import { revalidatePath } from "next/cache"
 import { sendEmail, toolBorrowRequestEmail, toolRequestApprovedEmail, toolRequestDeclinedEmail } from "@/lib/email"
 import { sendPushToUsers } from "@/lib/push"
 
+async function broadcastToolUpdate() {
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      },
+      body: JSON.stringify({ messages: [{ topic: "realtime:verktoy", event: "refresh", payload: {} }] }),
+    })
+  } catch { /* non-critical */ }
+}
+
 export async function addTool(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -35,6 +49,7 @@ export async function addTool(formData: FormData) {
   }
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -83,6 +98,7 @@ export async function setToolAvailability(id: string, available: boolean, borrow
 
   if (error) return { error: error.message }
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -94,6 +110,7 @@ export async function deleteTool(id: string) {
   const { error } = await supabase.from("tools").delete().eq("id", id).eq("user_id", user.id)
   if (error) return { error: error.message }
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -152,6 +169,7 @@ export async function createBorrowRequest(formData: FormData) {
   }
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -274,6 +292,7 @@ export async function assignToolToBorrower(toolId: string, borrowerId: string) {
   )
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -312,6 +331,7 @@ export async function acceptToolAssignment(requestId: string) {
   )
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -342,6 +362,7 @@ export async function declineToolAssignment(requestId: string) {
   )
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
 
@@ -433,5 +454,6 @@ export async function declineBorrowRequest(requestId: string) {
   }
 
   revalidatePath("/verktoy")
+  broadcastToolUpdate()
   return { success: true }
 }
