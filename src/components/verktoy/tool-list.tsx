@@ -37,10 +37,11 @@ function AvailabilityBadge({ available }: { available: boolean }) {
 
 function IncomingRequestCard({ request, onApprove, onDecline }: {
   request: ToolRequest
-  onApprove: (id: string) => Promise<void>
+  onApprove: (id: string) => Promise<string | null>
   onDecline: (id: string) => Promise<void>
 }) {
   const [loading, setLoading] = useState<"approve" | "decline" | null>(null)
+  const [approveError, setApproveError] = useState<string | null>(null)
   const requester = request.requester
 
   return (
@@ -59,12 +60,19 @@ function IncomingRequestCard({ request, onApprove, onDecline }: {
           </div>
         </div>
       </div>
+      {approveError && <p className="text-xs text-destructive">{approveError}</p>}
       <div className="flex gap-2">
         <Button
           size="sm"
           className="h-7 text-xs"
           disabled={!!loading}
-          onClick={async () => { setLoading("approve"); await onApprove(request.id); setLoading(null) }}
+          onClick={async () => {
+            setApproveError(null)
+            setLoading("approve")
+            const err = await onApprove(request.id)
+            setLoading(null)
+            if (err) setApproveError(err)
+          }}
         >
           <Check className="h-3 w-3" />
           {loading === "approve" ? "Godkjenner…" : "Godkjenn"}
@@ -163,10 +171,12 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
     router.refresh()
   }
 
-  async function handleApprove(requestId: string) {
-    await approveBorrowRequest(requestId)
+  async function handleApprove(requestId: string): Promise<string | null> {
+    const result = await approveBorrowRequest(requestId)
+    if (result?.error) return result.error
     setLocalPending((prev) => prev.filter((r) => r.id !== requestId))
     router.refresh()
+    return null
   }
 
   async function handleDecline(requestId: string) {
