@@ -286,7 +286,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
               router.refresh()
             }}
           >
-            {returning ? "Sender…" : "Meld tilbake"}
+            {returning ? "Returnerer…" : "Returner"}
           </Button>
         )}
       </div>

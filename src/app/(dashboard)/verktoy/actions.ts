@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { revalidatePath } from "next/cache"
 import { sendEmail, toolBorrowRequestEmail, toolRequestApprovedEmail, toolRequestDeclinedEmail } from "@/lib/email"
 import { sendPushToUsers } from "@/lib/push"
@@ -256,14 +257,16 @@ export async function returnTool(toolId: string) {
     return { error: "Ikke autorisert" }
   }
 
+  // Use service client so both owner and borrower can perform these writes
+  const service = createServiceClient()
   await Promise.all([
-    supabase.from("tools").update({
+    service.from("tools").update({
       available: true,
       borrowed_by_name: null,
       updated_at: new Date().toISOString(),
     }).eq("id", toolId),
     approvedRequest
-      ? supabase.from("tool_requests").update({ status: "returned" }).eq("id", approvedRequest.id)
+      ? service.from("tool_requests").update({ status: "returned" }).eq("id", approvedRequest.id)
       : Promise.resolve(),
   ])
 
