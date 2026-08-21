@@ -72,7 +72,7 @@ export async function requestToBorrow(toolId: string, message: string) {
 
   if (!tool) return { error: "Verktøy ikke funnet" }
 
-  const owner = tool.profile as { full_name: string | null; email: string | null } | null
+  const owner = tool.profile as unknown as { full_name: string | null; email: string | null } | null
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
   await Promise.all([
