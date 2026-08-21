@@ -37,7 +37,7 @@ function base(content: string, portalUrl = "") {
   .detail{background:#f4f4f5;border-radius:8px;padding:12px 16px;margin:16px 0}
   .detail p{margin:4px 0;font-size:14px}
   .label{color:#71717a;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
-  .btn{display:inline-block;background:#18181b;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;margin-top:16px}
+  .btn{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;letter-spacing:.01em}
   .footer{text-align:center;font-size:12px;color:#a1a1aa;margin-top:24px}
 </style></head>
 <body><div class="card">
@@ -143,14 +143,18 @@ export function bulletinPostEmail(opts: { postTitle: string; authorName: string;
 export function newSignupEmail(opts: { name: string; email: string; unitNumber: string; portalUrl: string }) {
   return base(`
 <h2>Ny bruker venter på godkjenning</h2>
-<p>En ny bruker har registrert seg på Moldhaugen-portalen.</p>
-<div class="detail">
-  <p class="label">Navn</p>
-  <p><strong>${opts.name}</strong></p>
-  <p class="label" style="margin-top:8px">E-post</p>
-  <p>${opts.email}</p>
-  ${opts.unitNumber ? `<p class="label" style="margin-top:8px">Leilighetsnummer</p><p>${opts.unitNumber}</p>` : ""}
-</div>
+<p>En ny bruker har registrert seg og venter på at du godkjenner kontoen.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #e4e4e7">
+  <tr style="background:#f9f9f9">
+    <td style="padding:10px 16px;width:40%;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e4e4e7">Navn</td>
+    <td style="padding:10px 16px;font-size:14px;color:#18181b;font-weight:500;border-bottom:1px solid #e4e4e7">${opts.name}</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 16px;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e4e4e7">E-post</td>
+    <td style="padding:10px 16px;font-size:14px;color:#18181b;border-bottom:1px solid #e4e4e7">${opts.email}</td>
+  </tr>
+  ${opts.unitNumber ? `<tr style="background:#f9f9f9"><td style="padding:10px 16px;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em">Leilighet</td><td style="padding:10px 16px;font-size:14px;color:#18181b">${opts.unitNumber}</td></tr>` : ""}
+</table>
 <a href="${opts.portalUrl}/admin" class="btn">Gå til administrasjon</a>`, opts.portalUrl)
 }
 
