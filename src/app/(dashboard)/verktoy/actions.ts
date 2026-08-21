@@ -188,6 +188,20 @@ export async function approveBorrowRequest(requestId: string) {
 
   if (tool?.user_id !== user.id) return { error: "Ikke autorisert" }
 
+  // Prevent double-booking: reject if another approved request overlaps these dates
+  const service = createServiceClient()
+  const { data: conflict } = await service
+    .from("tool_requests")
+    .select("id")
+    .eq("tool_id", tool!.id)
+    .eq("status", "approved")
+    .lte("borrow_from", request.borrow_until)
+    .gte("borrow_until", request.borrow_from)
+    .neq("id", requestId)
+    .maybeSingle()
+
+  if (conflict) return { error: "Verktøyet er allerede godkjent for utlån i denne perioden" }
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
   const fromDate = new Date(request.borrow_from + "T12:00:00Z").toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })
   const toDate = new Date(request.borrow_until + "T12:00:00Z").toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" })
