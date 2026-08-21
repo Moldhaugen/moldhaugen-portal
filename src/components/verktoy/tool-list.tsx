@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Camera, Hammer, Phone, Mail, Plus, Trash2, ChevronDown, ChevronUp, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -479,8 +480,13 @@ export function ToolList({ tools, myRequests, incomingRequests, residents, curre
   const [optimisticTools, setOptimisticTools] = useState(tools)
 
   useEffect(() => {
-    const id = setInterval(() => router.refresh(), 30_000)
-    return () => clearInterval(id)
+    const supabase = createClient()
+    const channel = supabase
+      .channel("tool-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tools" }, () => router.refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tool_requests" }, () => router.refresh())
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [router])
 
   const myTools = optimisticTools.filter((t) => t.user_id === currentUserId)
