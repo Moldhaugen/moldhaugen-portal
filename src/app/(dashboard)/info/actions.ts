@@ -73,6 +73,22 @@ export async function addBoardMember(userId: string, role: string) {
   return { success: true }
 }
 
+export async function updateBoardMember(id: string, role: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  if (!profile?.is_admin) return { error: "Ikke autorisert" }
+
+  if (!role.trim()) return { error: "Rolle er påkrevd" }
+
+  const { error } = await supabase.from("board_members").update({ role: role.trim() }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/info")
+  return { success: true }
+}
+
 export async function removeBoardMember(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
