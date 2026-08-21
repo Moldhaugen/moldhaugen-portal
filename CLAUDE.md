@@ -45,6 +45,51 @@ All of the above, plus confirm `NEXT_PUBLIC_SITE_URL` points to the live deploym
 - **At scheduled hour (or 09:00 if no time set)**: sends on-day reminder for assignments due today
 - Tracks sends via `reminder_day_before_sent_at` / `reminder_on_day_sent_at` columns on `maintenance_assignments`
 
+## Realtime updates (polling + broadcast pattern)
+
+Pages that need live cross-user updates use a two-layer approach in the client list component:
+
+```tsx
+useEffect(() => {
+  const supabase = createClient()                          // browser client
+  const channel = supabase
+    .channel("channel-name")
+    .on("broadcast", { event: "refresh" }, () => router.refresh())
+    .subscribe()
+  const poll = setInterval(() => router.refresh(), 5_000) // 5-second fallback
+  return () => { supabase.removeChannel(channel); clearInterval(poll) }
+}, [router])
+```
+
+Server actions call `broadcastToolUpdate()` (or equivalent) after every mutation — uses `supabase.channel().send()` on the service client. The broadcast reaches clients near-instantly when Supabase delivers it; polling covers the rest within 5 seconds.
+
+**Critical gotcha — stale useState from props**: client components that derive state from server-fetched props (`useState(prop)`) will NOT re-render when polling refreshes the server component, because React's `useState` only reads the initial value. Fixes:
+- For arrays used only for display: read `prop` directly (drop the local state).
+- For optimistic-only state (e.g. deleted IDs): keep a separate `Set` of IDs and filter `prop` against it.
+- For derived boolean state: sync with `useEffect(() => { setX(!!activeItem) }, [activeItem])`.
+
+**Critical gotcha — RLS blocks server action reads**: Supabase RLS policies that restrict SELECT to `auth.uid()` rows will silently return `null` even in server actions. Pattern:
+- Auth check: use regular client (`createClient()`) — it has the user's session.
+- Writes that need cross-user access: use service client (`createServiceClient()`).
+- Reads that need cross-user access (e.g. finding an approved request regardless of who owns it): use service client.
+- Never rely on RLS-filtered reads for authorization logic — query explicitly by `user.id`.
+
+**Force-dynamic**: add `export const dynamic = "force-dynamic"` to pages with polling so `router.refresh()` always hits Supabase fresh instead of a cached response.
+
+**Supabase Realtime broadcast via REST**: the `channel.send()` approach from the service client works (returns `ok`) but delivery to subscribed clients is unreliable — use polling as the guaranteed fallback, not as a last resort.
+
+## PWA / Install as app
+
+The app is configured as a PWA so users can install it to their home screen (iOS Safari: Share → Add to Home Screen; Android Chrome: browser menu → Install app).
+
+Key files:
+- `src/app/manifest.ts` (or `public/manifest.json`) — app name, icons, `display: "standalone"`, `start_url`
+- Icons in `public/` — at minimum 192×192 and 512×512 PNG
+- `<link rel="manifest">` in the root layout (Next.js adds this automatically from `manifest.ts`)
+- iOS splash/icon meta tags in root layout `<head>` if needed for full iOS support
+
+The `beforeinstallprompt` event (seen in browser logs as "Banner not shown: beforeinstallpromptEvent.preventDefault() called") means the PWA install criteria are met but the prompt was suppressed — this is normal if no custom install button is wired up.
+
 ## TODOs
 
 - [ ] **Run `supabase/migration_reminders.sql`** in Supabase SQL editor to add `scheduled_time`, `reminder_day_before_sent_at`, `reminder_on_day_sent_at` columns to `maintenance_assignments`.
