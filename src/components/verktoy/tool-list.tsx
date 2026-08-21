@@ -1,6 +1,7 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Camera, Hammer, Phone, Mail, Plus, Trash2, ChevronDown, ChevronUp, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -124,6 +125,7 @@ function MyToolCard({ tool, requests, onDelete }: {
   requests: ToolRequest[]
   onDelete: (id: string) => void
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showRequests, setShowRequests] = useState(requests.length > 0)
   const [borrowedByName, setBorrowedByName] = useState(tool.borrowed_by_name ?? "")
@@ -135,22 +137,26 @@ function MyToolCard({ tool, requests, onDelete }: {
     await setToolAvailability(tool.id, false, borrowedByName)
     setSaving(false)
     setOpen(false)
+    router.refresh()
   }
 
   async function handleReturn() {
     setSaving(true)
     await returnTool(tool.id)
     setSaving(false)
+    router.refresh()
   }
 
   async function handleApprove(requestId: string) {
     await approveBorrowRequest(requestId)
     setLocalRequests((prev) => prev.filter((r) => r.id !== requestId))
+    router.refresh()
   }
 
   async function handleDecline(requestId: string) {
     await declineBorrowRequest(requestId)
     setLocalRequests((prev) => prev.filter((r) => r.id !== requestId))
+    router.refresh()
   }
 
   return (
@@ -238,6 +244,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
   const [message, setMessage] = useState("")
   const [borrowFrom, setBorrowFrom] = useState("")
   const [borrowUntil, setBorrowUntil] = useState("")
+  const router = useRouter()
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -276,6 +283,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
               setReturning(true)
               await returnTool(tool.id)
               setReturning(false)
+              router.refresh()
             }}
           >
             {returning ? "Sender…" : "Meld tilbake"}
@@ -307,6 +315,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
     if (result.error) { setError(result.error); setSending(false); return }
     setSent(true)
     setSending(false)
+    router.refresh()
   }
 
   const today = new Date().toISOString().split("T")[0]
@@ -392,11 +401,17 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
 }
 
 export function ToolList({ tools, myRequests, incomingRequests, currentUserId }: Props) {
+  const router = useRouter()
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [optimisticTools, setOptimisticTools] = useState(tools)
+
+  useEffect(() => {
+    const id = setInterval(() => router.refresh(), 30_000)
+    return () => clearInterval(id)
+  }, [router])
 
   const myTools = optimisticTools.filter((t) => t.user_id === currentUserId)
   const othersTools = optimisticTools.filter((t) => t.user_id !== currentUserId)
@@ -406,13 +421,14 @@ export function ToolList({ tools, myRequests, incomingRequests, currentUserId }:
     setError(null)
     setLoading(true)
     const result = await addTool(new FormData(e.currentTarget))
-    if (result.error) { setError(result.error) } else { setShowForm(false); setImagePreview(null); (e.target as HTMLFormElement).reset() }
+    if (result.error) { setError(result.error) } else { setShowForm(false); setImagePreview(null); (e.target as HTMLFormElement).reset(); router.refresh() }
     setLoading(false)
   }
 
   async function handleDelete(id: string) {
     setOptimisticTools((prev) => prev.filter((t) => t.id !== id))
     await deleteTool(id)
+    router.refresh()
   }
 
   return (
