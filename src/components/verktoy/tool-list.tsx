@@ -385,6 +385,9 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
 
   return (
     <div className="pt-2 border-t border-border space-y-2">
+      {!tool.available && (
+        <p className="text-xs text-amber-500">Verktøyet er for øyeblikket utlånt – du kan likevel reservere det for en fremtidig dato.</p>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="space-y-1">
         <Label className="text-xs">Melding</Label>
@@ -411,11 +414,13 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
         </div>
       </div>
       <div className="flex gap-2 flex-wrap">
-        <Button size="sm" onClick={() => buildAndSend(today, today)} disabled={sending}>
-          {sending ? "Sender…" : "Lån i dag"}
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => { if (borrowFrom && borrowUntil) buildAndSend(borrowFrom, borrowUntil); else setError("Velg datoer") }} disabled={sending}>
-          Send forespørsel
+        {tool.available && (
+          <Button size="sm" onClick={() => buildAndSend(today, today)} disabled={sending}>
+            {sending ? "Sender…" : "Lån i dag"}
+          </Button>
+        )}
+        <Button size="sm" variant={tool.available ? "outline" : "default"} onClick={() => { if (borrowFrom && borrowUntil) buildAndSend(borrowFrom, borrowUntil); else setError("Velg datoer") }} disabled={sending}>
+          {sending ? "Sender…" : "Send forespørsel"}
         </Button>
         <Button size="sm" variant="ghost" onClick={onDone}>Avbryt</Button>
       </div>
@@ -432,11 +437,11 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
     else setRequesting(false)
   }, [activeRequest])
 
-  const canOpen = tool.available && !requesting
+  const canOpen = !activeRequest && !requesting
 
   return (
     <Card
-      className={`${tool.available || myRequest?.status === "approved" ? "" : "opacity-60"} ${canOpen ? "cursor-pointer hover:border-primary/50 transition-colors" : ""}`}
+      className={`${tool.available || myRequest?.status === "approved" ? "" : "opacity-60"} ${canOpen ? "cursor-pointer hover:border-primary/50 transition-colors" : ""} ${!tool.available && canOpen ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
       onClick={canOpen ? () => setRequesting(true) : undefined}
     >
       <CardContent className="py-3 space-y-2">
