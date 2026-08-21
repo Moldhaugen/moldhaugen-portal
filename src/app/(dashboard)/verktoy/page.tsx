@@ -48,7 +48,7 @@ export default async function VerktoyPage() {
       <ToolList
         tools={(tools ?? []) as Tool[]}
         myRequests={(myRequests ?? []) as ToolRequest[]}
-        incomingRequests={(incomingResult.data ?? []) as ToolRequest[]}
+        incomingRequests={(incomingResult.data ?? []) as unknown as ToolRequest[]}
         currentUserId={user.id}
       />
     </div>
