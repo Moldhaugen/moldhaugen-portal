@@ -17,8 +17,9 @@ export default async function VerktoyPage() {
     .order("created_at", { ascending: false })
 
   const myToolIds = (tools ?? []).filter((t) => t.user_id === user.id).map((t) => t.id)
+  const today = new Date().toISOString().split("T")[0]
 
-  const [{ data: myRequests }, incomingResult] = await Promise.all([
+  const [{ data: myRequests }, incomingResult, { data: activeLoans }] = await Promise.all([
     supabase
       .from("tool_requests")
       .select("id, tool_id, message, borrow_from, borrow_until, status, created_at")
@@ -32,7 +33,19 @@ export default async function VerktoyPage() {
           .eq("status", "pending")
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] }),
+    supabase
+      .from("tool_requests")
+      .select("tool_id")
+      .eq("status", "approved")
+      .lte("borrow_from", today)
+      .gte("borrow_until", today),
   ])
+
+  const activeLoanToolIds = new Set((activeLoans ?? []).map((r: { tool_id: string }) => r.tool_id))
+  const processedTools = (tools ?? []).map((tool) => ({
+    ...tool,
+    available: activeLoanToolIds.has(tool.id) ? false : tool.available,
+  }))
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -46,7 +59,7 @@ export default async function VerktoyPage() {
         </p>
       </div>
       <ToolList
-        tools={(tools ?? []) as Tool[]}
+        tools={processedTools as unknown as Tool[]}
         myRequests={(myRequests ?? []) as ToolRequest[]}
         incomingRequests={(incomingResult.data ?? []) as unknown as ToolRequest[]}
         currentUserId={user.id}

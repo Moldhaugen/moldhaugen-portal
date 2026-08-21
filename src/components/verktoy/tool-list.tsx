@@ -303,7 +303,7 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
   const [requesting, setRequesting] = useState(!!myRequest)
 
   return (
-    <Card className={tool.available ? "" : "opacity-60"}>
+    <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
       <CardContent className="py-3 space-y-2">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
