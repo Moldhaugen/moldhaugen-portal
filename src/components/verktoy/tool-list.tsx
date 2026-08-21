@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { Hammer, Phone, Mail, Plus, Trash2, ChevronDown, ChevronUp, Check, X } from "lucide-react"
+import { useRef, useState } from "react"
+import { Camera, Hammer, Phone, Mail, Plus, Trash2, ChevronDown, ChevronUp, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool } from "@/app/(dashboard)/verktoy/actions"
+import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool, uploadToolImage } from "@/app/(dashboard)/verktoy/actions"
 import type { Tool, ToolRequest } from "@/types"
 
 type Props = {
@@ -81,6 +81,44 @@ function IncomingRequestCard({ request, onApprove, onDecline }: {
   )
 }
 
+function ToolImageUpload({ toolId, currentUrl }: { toolId: string; currentUrl: string | null }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<string | null>(currentUrl)
+  const [uploading, setUploading] = useState(false)
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPreview(URL.createObjectURL(file))
+    setUploading(true)
+    const fd = new FormData()
+    fd.set("image", file)
+    await uploadToolImage(toolId, fd)
+    setUploading(false)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      title="Endre bilde"
+      className="relative h-12 w-12 rounded-lg overflow-hidden border border-border bg-muted shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity"
+    >
+      {preview ? (
+        <img src={preview} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <Camera className="h-4 w-4 text-muted-foreground" />
+      )}
+      {uploading && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <span className="text-white text-xs">…</span>
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
+    </button>
+  )
+}
+
 function MyToolCard({ tool, requests, onDelete }: {
   tool: Tool
   requests: ToolRequest[]
@@ -119,6 +157,7 @@ function MyToolCard({ tool, requests, onDelete }: {
     <Card>
       <CardContent className="py-3 space-y-3">
         <div className="flex items-center gap-3">
+          <ToolImageUpload toolId={tool.id} currentUrl={tool.image_url} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-medium text-sm">{tool.name}</p>
@@ -306,6 +345,9 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
     <Card className={tool.available || myRequest?.status === "approved" ? "" : "opacity-60"}>
       <CardContent className="py-3 space-y-2">
         <div className="flex items-start gap-3">
+          {tool.image_url && (
+            <img src={tool.image_url} alt={tool.name} className="h-12 w-12 rounded-lg object-cover shrink-0 border border-border" />
+          )}
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm">{tool.name}</p>
             {tool.description && <p className="text-xs text-muted-foreground">{tool.description}</p>}
@@ -353,6 +395,7 @@ export function ToolList({ tools, myRequests, incomingRequests, currentUserId }:
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [optimisticTools, setOptimisticTools] = useState(tools)
 
   const myTools = optimisticTools.filter((t) => t.user_id === currentUserId)
@@ -363,7 +406,7 @@ export function ToolList({ tools, myRequests, incomingRequests, currentUserId }:
     setError(null)
     setLoading(true)
     const result = await addTool(new FormData(e.currentTarget))
-    if (result.error) { setError(result.error) } else { setShowForm(false); (e.target as HTMLFormElement).reset() }
+    if (result.error) { setError(result.error) } else { setShowForm(false); setImagePreview(null); (e.target as HTMLFormElement).reset() }
     setLoading(false)
   }
 
@@ -395,6 +438,29 @@ export function ToolList({ tools, myRequests, incomingRequests, currentUserId }:
                 <div className="space-y-1">
                   <Label htmlFor="description">Beskrivelse (valgfritt)</Label>
                   <Input id="description" name="description" placeholder="f.eks. Elektrisk, passer til hekk" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="image">Bilde (valgfritt)</Label>
+                  <div className="flex items-center gap-3">
+                    <label htmlFor="image" className="flex items-center gap-2 cursor-pointer h-8 px-3 rounded-md border border-border bg-background text-sm hover:bg-muted transition-colors">
+                      <Camera className="h-4 w-4 text-muted-foreground" />
+                      Velg bilde
+                    </label>
+                    <input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        setImagePreview(file ? URL.createObjectURL(file) : null)
+                      }}
+                    />
+                    {imagePreview && (
+                      <img src={imagePreview} alt="" className="h-8 w-8 rounded object-cover border border-border" />
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" size="sm" disabled={loading}>{loading ? "Lagrer…" : "Lagre"}</Button>

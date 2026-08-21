@@ -14,10 +14,55 @@ export async function addTool(formData: FormData) {
   const description = (formData.get("description") as string)?.trim() || null
   if (!name) return { error: "Navn er påkrevd" }
 
-  const { error } = await supabase.from("tools").insert({ user_id: user.id, name, description })
-  if (error) return { error: error.message }
+  const { data: tool, error } = await supabase
+    .from("tools")
+    .insert({ user_id: user.id, name, description })
+    .select("id")
+    .single()
+
+  if (error || !tool) return { error: error?.message ?? "Noe gikk galt" }
+
+  const image = formData.get("image") as File | null
+  if (image && image.size > 0) {
+    const ext = image.name.split(".").pop() ?? "jpg"
+    const path = `${user.id}/${tool.id}.${ext}`
+    const { error: uploadError } = await supabase.storage.from("tools").upload(path, image, { upsert: true })
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage.from("tools").getPublicUrl(path)
+      await supabase.from("tools").update({ image_url: urlData.publicUrl }).eq("id", tool.id)
+    }
+  }
+
   revalidatePath("/verktoy")
   return { success: true }
+}
+
+export async function uploadToolImage(toolId: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const image = formData.get("image") as File
+  if (!image || image.size === 0) return { error: "Ingen fil valgt" }
+  if (image.size > 5 * 1024 * 1024) return { error: "Bildet må være under 5 MB" }
+
+  const ext = image.name.split(".").pop() ?? "jpg"
+  const path = `${user.id}/${toolId}.${ext}`
+
+  const { error: uploadError } = await supabase.storage.from("tools").upload(path, image, { upsert: true })
+  if (uploadError) return { error: uploadError.message }
+
+  const { data } = supabase.storage.from("tools").getPublicUrl(path)
+
+  const { error: updateError } = await supabase
+    .from("tools")
+    .update({ image_url: data.publicUrl })
+    .eq("id", toolId)
+    .eq("user_id", user.id)
+
+  if (updateError) return { error: updateError.message }
+  revalidatePath("/verktoy")
+  return { success: true, url: data.publicUrl }
 }
 
 export async function setToolAvailability(id: string, available: boolean, borrowedByName?: string) {
