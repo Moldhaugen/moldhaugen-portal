@@ -19,7 +19,7 @@ export function EventCard({ event, currentUserId }: Props) {
   const start = new Date(event.start_time)
   const end = new Date(event.end_time)
   const sameDay = start.toDateString() === end.toDateString()
-  const isAllDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0
+  const isAllDay = start.getUTCHours() === 0 && start.getUTCMinutes() === 0 && end.getUTCHours() === 0 && end.getUTCMinutes() === 0
 
   async function handleDelete() {
     if (!confirm(`Slett "${event.title}"?`)) return
@@ -47,7 +47,11 @@ export function EventCard({ event, currentUserId }: Props) {
               <div className="flex items-center gap-1.5">
                 <CalendarDays className="h-3 w-3 shrink-0" />
                 {isAllDay && !sameDay ? (
-                  <span>{format(start, "d. MMM", { locale: nb })} – {format(end, "d. MMM yyyy", { locale: nb })}</span>
+                  <span>
+                    {format(new Date(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()), "d. MMM", { locale: nb })}
+                    {" – "}
+                    {format(new Date(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()), "d. MMM yyyy", { locale: nb })}
+                  </span>
                 ) : (
                   <span>{format(start, "d. MMMM yyyy", { locale: nb })}</span>
                 )}
