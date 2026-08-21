@@ -144,17 +144,13 @@ export function newSignupEmail(opts: { name: string; email: string; unitNumber: 
   return base(`
 <h2>Ny bruker venter på godkjenning</h2>
 <p>En ny bruker har registrert seg og venter på at du godkjenner kontoen.</p>
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #e4e4e7">
-  <tr style="background:#f9f9f9">
-    <td style="padding:10px 16px;width:40%;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e4e4e7">Navn</td>
-    <td style="padding:10px 16px;font-size:14px;color:#18181b;font-weight:500;border-bottom:1px solid #e4e4e7">${opts.name}</td>
-  </tr>
-  <tr>
-    <td style="padding:10px 16px;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e4e4e7">E-post</td>
-    <td style="padding:10px 16px;font-size:14px;color:#18181b;border-bottom:1px solid #e4e4e7">${opts.email}</td>
-  </tr>
-  ${opts.unitNumber ? `<tr style="background:#f9f9f9"><td style="padding:10px 16px;font-size:12px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:.05em">Leilighet</td><td style="padding:10px 16px;font-size:14px;color:#18181b">${opts.unitNumber}</td></tr>` : ""}
-</table>
+<div class="detail">
+  <p class="label">Navn</p>
+  <p><strong>${opts.name}</strong></p>
+  <p class="label" style="margin-top:8px">E-post</p>
+  <p>${opts.email}</p>
+  ${opts.unitNumber ? `<p class="label" style="margin-top:8px">Leilighet</p><p>${opts.unitNumber}</p>` : ""}
+</div>
 <a href="${opts.portalUrl}/admin" class="btn">Gå til administrasjon</a>`, opts.portalUrl)
 }
 
