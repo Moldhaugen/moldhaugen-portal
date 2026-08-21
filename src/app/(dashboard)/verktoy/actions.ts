@@ -365,31 +365,35 @@ export async function declineToolAssignment(requestId: string) {
 }
 
 export async function returnTool(toolId: string) {
-  console.log("[returnTool] called, toolId:", toolId)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  console.log("[returnTool] user:", user?.id)
   if (!user) return { error: "Ikke innlogget" }
 
-  // Use service client for reads so RLS doesn't silently filter out rows
   const service = createServiceClient()
-  const [{ data: tool }, { data: approvedRequest }] = await Promise.all([
-    service.from("tools").select("user_id, name").eq("id", toolId).single(),
-    service.from("tool_requests")
-      .select("id, requester_id")
-      .eq("tool_id", toolId)
-      .eq("status", "approved")
-      .maybeSingle(),
-  ])
 
+  // Regular client: all authenticated users can SELECT tools
+  const { data: tool } = await supabase.from("tools").select("user_id, name").eq("id", toolId).single()
   if (!tool) return { error: "Verktøy ikke funnet" }
 
   const isOwner = tool.user_id === user.id
-  console.log("[returnTool] userId:", user.id, "tool.user_id:", tool.user_id, "isOwner:", isOwner, "approvedRequest:", approvedRequest)
 
-  if (!isOwner && approvedRequest?.requester_id !== user.id) {
-    return { error: "Ikke autorisert" }
+  if (!isOwner) {
+    // Borrower: verify they have an approved request for this tool
+    const { data: myRequest } = await supabase.from("tool_requests")
+      .select("id")
+      .eq("tool_id", toolId)
+      .eq("requester_id", user.id)
+      .eq("status", "approved")
+      .maybeSingle()
+    if (!myRequest) return { error: "Ikke autorisert" }
   }
+
+  // Find the approved request for notifications (service client to bypass RLS)
+  const { data: approvedRequest } = await service.from("tool_requests")
+    .select("id, requester_id")
+    .eq("tool_id", toolId)
+    .eq("status", "approved")
+    .maybeSingle()
 
   await Promise.all([
     service.from("tools").update({

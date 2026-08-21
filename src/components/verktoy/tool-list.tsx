@@ -150,9 +150,9 @@ function MyToolCard({ tool, requests, residents, onDelete }: {
 
   async function handleReturn() {
     setSaving(true)
-    router.refresh()
-    await returnTool(tool.id)
+    const result = await returnTool(tool.id)
     setSaving(false)
+    if (result?.error) { alert(result.error); return }
     router.refresh()
   }
 
