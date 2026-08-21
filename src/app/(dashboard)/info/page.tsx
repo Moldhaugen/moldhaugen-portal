@@ -2,20 +2,24 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { InfoForm } from "@/components/info/info-form"
 import { InfoCard } from "@/components/info/info-card"
+import { StyretCard } from "@/components/info/styret-card"
 import { BookOpen } from "lucide-react"
+import type { BoardMember, ProfileSummary } from "@/types"
 
 const CATEGORIES = ["Tjenester", "Kontakter", "Nødhjelp", "Annet"]
 
 export default async function InfoPage() {
   const supabase = await createClient()
-  const [{ data: { session } }, { data: entries }] = await Promise.all([
-    supabase.auth.getSession(),
-    supabase.from("info_entries").select("*, creator:profiles!info_entries_created_by_fkey(id, full_name, email)").order("category").order("created_at", { ascending: false }),
-  ])
+  const { data: { session } } = await supabase.auth.getSession()
   const user = session?.user
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  const [{ data: entries }, { data: profile }, { data: boardMembers }, { data: residents }] = await Promise.all([
+    supabase.from("info_entries").select("*, creator:profiles!info_entries_created_by_fkey(id, full_name, email)").order("category").order("created_at", { ascending: false }),
+    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
+    supabase.from("board_members").select("id, user_id, role, created_at, profile:profiles(id, full_name, email, phone_number, unit_number)").order("created_at", { ascending: true }),
+    supabase.from("profiles").select("id, full_name, email, unit_number").eq("is_approved", true).order("full_name"),
+  ])
 
   const grouped: Record<string, typeof entries> = {}
   for (const cat of CATEGORIES) {
@@ -42,6 +46,14 @@ export default async function InfoPage() {
           </p>
         </div>
         <InfoForm />
+      </div>
+
+      <div className="mb-8">
+        <StyretCard
+          boardMembers={(boardMembers ?? []) as unknown as BoardMember[]}
+          residents={(residents ?? []) as ProfileSummary[]}
+          isAdmin={!!profile?.is_admin}
+        />
       </div>
 
       {totalCount > 0 ? (

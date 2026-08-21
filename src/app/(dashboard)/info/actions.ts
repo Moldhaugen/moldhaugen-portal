@@ -58,3 +58,31 @@ export async function deleteInfoEntry(id: string) {
   await supabase.from("info_entries").delete().eq("id", id)
   revalidatePath("/info")
 }
+
+export async function addBoardMember(userId: string, role: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  if (!profile?.is_admin) return { error: "Ikke autorisert" }
+
+  const { error } = await supabase.from("board_members").insert({ user_id: userId, role })
+  if (error) return { error: error.message }
+  revalidatePath("/info")
+  return { success: true }
+}
+
+export async function removeBoardMember(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Ikke innlogget" }
+
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+  if (!profile?.is_admin) return { error: "Ikke autorisert" }
+
+  const { error } = await supabase.from("board_members").delete().eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/info")
+  return { success: true }
+}

@@ -86,6 +86,14 @@ export type Tool = {
   profile?: Pick<Profile, "id" | "full_name" | "unit_number" | "phone_number" | "email">
 }
 
+export type BoardMember = {
+  id: string
+  user_id: string
+  role: string
+  created_at: string
+  profile?: Pick<Profile, "id" | "full_name" | "email" | "phone_number" | "unit_number">
+}
+
 export type MaintenanceAssignment = {
   id: string
   plan_id: string
