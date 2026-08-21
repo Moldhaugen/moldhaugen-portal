@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { addTool, deleteTool, setToolAvailability, createBorrowRequest, approveBorrowRequest, declineBorrowRequest, returnTool, uploadToolImage } from "@/app/(dashboard)/verktoy/actions"
-import type { Tool, ToolRequest } from "@/types"
+import type { Tool, ToolRequest, ProfileSummary } from "@/types"
 
 type Props = {
   tools: Tool[]
   myRequests: ToolRequest[]
   incomingRequests: ToolRequest[]
+  residents: ProfileSummary[]
   currentUserId: string
 }
 
@@ -120,9 +121,10 @@ function ToolImageUpload({ toolId, currentUrl }: { toolId: string; currentUrl: s
   )
 }
 
-function MyToolCard({ tool, requests, onDelete }: {
+function MyToolCard({ tool, requests, residents, onDelete }: {
   tool: Tool
   requests: ToolRequest[]
+  residents: ProfileSummary[]
   onDelete: (id: string) => void
 }) {
   const router = useRouter()
@@ -201,14 +203,20 @@ function MyToolCard({ tool, requests, onDelete }: {
         {open && (
           <div className="pt-2 border-t border-border space-y-2">
             <div className="space-y-1">
-              <Label htmlFor={`borrower-${tool.id}`} className="text-xs">Hvem har den? (valgfritt)</Label>
-              <Input
+              <Label htmlFor={`borrower-${tool.id}`} className="text-xs">Hvem låner den?</Label>
+              <select
                 id={`borrower-${tool.id}`}
                 value={borrowedByName}
                 onChange={(e) => setBorrowedByName(e.target.value)}
-                placeholder="f.eks. Kari Nordmann"
-                className="h-8 text-sm"
-              />
+                className="h-8 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">Velg person…</option>
+                {residents.filter((p) => p.id !== tool.user_id).map((p) => (
+                  <option key={p.id} value={p.full_name ?? ""}>
+                    {p.full_name ?? "Ukjent"}{p.unit_number ? ` · nr. ${p.unit_number}` : ""}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleMakeUnavailable} disabled={saving}>
@@ -414,7 +422,7 @@ function OtherToolCard({ tool, myRequest }: { tool: Tool; myRequest?: ToolReques
   )
 }
 
-export function ToolList({ tools, myRequests, incomingRequests, currentUserId }: Props) {
+export function ToolList({ tools, myRequests, incomingRequests, residents, currentUserId }: Props) {
   const router = useRouter()
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -510,6 +518,7 @@ export function ToolList({ tools, myRequests, incomingRequests, currentUserId }:
                 key={tool.id}
                 tool={tool}
                 requests={incomingRequests.filter((r) => r.tool_id === tool.id)}
+                residents={residents}
                 onDelete={handleDelete}
               />
             ))}

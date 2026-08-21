@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Hammer } from "lucide-react"
 import { ToolList } from "@/components/verktoy/tool-list"
-import type { Tool, ToolRequest } from "@/types"
+import type { Tool, ToolRequest, ProfileSummary } from "@/types"
 
 export default async function VerktoyPage() {
   const supabase = await createClient()
@@ -19,7 +19,7 @@ export default async function VerktoyPage() {
   const myToolIds = (tools ?? []).filter((t) => t.user_id === user.id).map((t) => t.id)
   const today = new Date().toISOString().split("T")[0]
 
-  const [{ data: myRequests }, incomingResult, { data: activeLoans }] = await Promise.all([
+  const [{ data: myRequests }, incomingResult, { data: activeLoans }, { data: residents }] = await Promise.all([
     supabase
       .from("tool_requests")
       .select("id, tool_id, message, borrow_from, borrow_until, status, created_at")
@@ -39,6 +39,11 @@ export default async function VerktoyPage() {
       .eq("status", "approved")
       .lte("borrow_from", today)
       .gte("borrow_until", today),
+    supabase
+      .from("profiles")
+      .select("id, full_name, unit_number, email")
+      .eq("is_approved", true)
+      .order("full_name"),
   ])
 
   const activeLoanToolIds = new Set((activeLoans ?? []).map((r: { tool_id: string }) => r.tool_id))
@@ -62,6 +67,7 @@ export default async function VerktoyPage() {
         tools={processedTools as unknown as Tool[]}
         myRequests={(myRequests ?? []) as ToolRequest[]}
         incomingRequests={(incomingResult.data ?? []) as unknown as ToolRequest[]}
+        residents={(residents ?? []) as ProfileSummary[]}
         currentUserId={user.id}
       />
     </div>
