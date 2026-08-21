@@ -7,21 +7,41 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    setSuccess(null)
     setLoading(true)
     const result = await signup(new FormData(e.currentTarget))
     if (result?.error) setError(result.error)
-    if (result?.success) setSuccess(result.success)
+    else setDone(true)
     setLoading(false)
+  }
+
+  if (done) {
+    return (
+      <Card>
+        <CardContent className="pt-8 pb-8 flex flex-col items-center text-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle className="h-7 w-7 text-green-600" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Konto opprettet!</h2>
+            <p className="text-sm text-muted-foreground">Sjekk e-posten din for å bekrefte adressen.</p>
+            <p className="text-sm text-muted-foreground">En administrator vil sjekke og slippe deg inn.</p>
+          </div>
+          <Link href="/login" className="text-sm text-primary hover:underline mt-2">
+            Tilbake til innlogging
+          </Link>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -35,11 +55,6 @@ export default function SignupPage() {
           {error && (
             <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
-            </div>
-          )}
-          {success && (
-            <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 border border-green-200">
-              {success}
             </div>
           )}
           <div className="space-y-2">
@@ -70,7 +85,7 @@ export default function SignupPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={loading || !!success}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Oppretter konto…" : "Opprett konto"}
           </Button>
           <p className="text-sm text-muted-foreground text-center">
