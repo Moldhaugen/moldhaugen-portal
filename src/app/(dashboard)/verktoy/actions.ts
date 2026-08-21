@@ -365,8 +365,10 @@ export async function declineToolAssignment(requestId: string) {
 }
 
 export async function returnTool(toolId: string) {
+  console.log("[returnTool] called, toolId:", toolId)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  console.log("[returnTool] user:", user?.id)
   if (!user) return { error: "Ikke innlogget" }
 
   // Use service client for reads so RLS doesn't silently filter out rows
