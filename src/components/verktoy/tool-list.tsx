@@ -142,6 +142,7 @@ function MyToolCard({ tool, requests, onDelete }: {
 
   async function handleReturn() {
     setSaving(true)
+    router.refresh()
     await returnTool(tool.id)
     setSaving(false)
     router.refresh()
@@ -281,10 +282,10 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
             disabled={returning}
             onClick={async () => {
               setReturning(true)
-              await returnTool(tool.id)
-              setReturning(false)
-              router.refresh()
               onDone()
+              router.refresh()
+              await returnTool(tool.id)
+              router.refresh()
             }}
           >
             {returning ? "Returnerer…" : "Returner"}
