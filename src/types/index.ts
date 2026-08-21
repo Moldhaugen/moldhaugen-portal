@@ -10,6 +10,7 @@ export type Profile = {
   email_event_notifications: boolean
   email_maintenance_notifications: boolean
   email_announcement_notifications: boolean
+  email_tool_notifications: boolean
   push_notifications_enabled: boolean
   phone_number: string | null
   created_at: string

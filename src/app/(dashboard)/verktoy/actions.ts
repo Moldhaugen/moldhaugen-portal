@@ -118,17 +118,17 @@ export async function createBorrowRequest(formData: FormData) {
 
   const [{ data: requester }, { data: tool }] = await Promise.all([
     supabase.from("profiles").select("full_name, phone_number, email").eq("id", user.id).single(),
-    supabase.from("tools").select("name, user_id, profile:profiles(full_name, email)").eq("id", toolId).single(),
+    supabase.from("tools").select("name, user_id, profile:profiles(full_name, email, email_tool_notifications)").eq("id", toolId).single(),
   ])
 
   if (tool) {
-    const owner = tool.profile as unknown as { full_name: string | null; email: string | null } | null
+    const owner = tool.profile as unknown as { full_name: string | null; email: string | null; email_tool_notifications: boolean } | null
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
     const fromDate = new Date(borrowFrom + "T12:00:00Z").toLocaleDateString("nb-NO", { day: "numeric", month: "long" })
     const toDate = new Date(borrowUntil + "T12:00:00Z").toLocaleDateString("nb-NO", { day: "numeric", month: "long" })
 
     await Promise.all([
-      owner?.email
+      owner?.email && owner.email_tool_notifications !== false
         ? sendEmail(
             owner.email,
             `${requester?.full_name ?? "En nabo"} ønsker å låne ${tool.name}`,
@@ -162,14 +162,14 @@ export async function approveBorrowRequest(requestId: string) {
 
   const { data: request } = await supabase
     .from("tool_requests")
-    .select("*, tool:tools(id, name, user_id), requester:profiles(id, full_name, email)")
+    .select("*, tool:tools(id, name, user_id), requester:profiles(id, full_name, email, email_tool_notifications)")
     .eq("id", requestId)
     .single()
 
   if (!request) return { error: "Forespørsel ikke funnet" }
 
   const tool = request.tool as unknown as { id: string; name: string; user_id: string } | null
-  const requester = request.requester as unknown as { id: string; full_name: string | null; email: string | null } | null
+  const requester = request.requester as unknown as { id: string; full_name: string | null; email: string | null; email_tool_notifications: boolean } | null
 
   if (tool?.user_id !== user.id) return { error: "Ikke autorisert" }
 
@@ -214,7 +214,7 @@ export async function approveBorrowRequest(requestId: string) {
   // Notify requester
   if (requester) {
     await Promise.all([
-      requester.email
+      requester.email && requester.email_tool_notifications !== false
         ? sendEmail(
             requester.email,
             `Forespørsel godkjent: ${tool!.name}`,
@@ -290,14 +290,14 @@ export async function declineBorrowRequest(requestId: string) {
 
   const { data: request } = await supabase
     .from("tool_requests")
-    .select("*, tool:tools(id, name, user_id), requester:profiles(id, full_name, email)")
+    .select("*, tool:tools(id, name, user_id), requester:profiles(id, full_name, email, email_tool_notifications)")
     .eq("id", requestId)
     .single()
 
   if (!request) return { error: "Forespørsel ikke funnet" }
 
   const tool = request.tool as unknown as { id: string; name: string; user_id: string } | null
-  const requester = request.requester as unknown as { id: string; full_name: string | null; email: string | null } | null
+  const requester = request.requester as unknown as { id: string; full_name: string | null; email: string | null; email_tool_notifications: boolean } | null
 
   if (tool?.user_id !== user.id) return { error: "Ikke autorisert" }
 
@@ -306,7 +306,7 @@ export async function declineBorrowRequest(requestId: string) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
   if (requester) {
     await Promise.all([
-      requester.email
+      requester.email && requester.email_tool_notifications !== false
         ? sendEmail(
             requester.email,
             `Forespørsel om ${tool!.name}`,

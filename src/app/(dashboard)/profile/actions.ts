@@ -15,6 +15,7 @@ export async function updateProfile(formData: FormData) {
   const email_event_notifications         = formData.get("email_event_notifications") === "on"
   const email_maintenance_notifications   = formData.get("email_maintenance_notifications") === "on"
   const email_announcement_notifications  = formData.get("email_announcement_notifications") === "on"
+  const email_tool_notifications          = formData.get("email_tool_notifications") === "on"
   const push_notifications_enabled        = formData.get("push_notifications_enabled") === "on"
   const newEmail = (formData.get("email") as string)?.trim()
 
@@ -27,7 +28,7 @@ export async function updateProfile(formData: FormData) {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name, unit_number, phone_number, email_bulletin_notifications, email_event_notifications, email_maintenance_notifications, email_announcement_notifications, push_notifications_enabled, updated_at: new Date().toISOString() })
+    .update({ full_name, unit_number, phone_number, email_bulletin_notifications, email_event_notifications, email_maintenance_notifications, email_announcement_notifications, email_tool_notifications, push_notifications_enabled, updated_at: new Date().toISOString() })
     .eq("id", user.id)
 
   if (error) return { error: error.message }

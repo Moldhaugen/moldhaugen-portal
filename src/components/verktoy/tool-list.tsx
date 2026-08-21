@@ -284,6 +284,7 @@ function BorrowRequestForm({ tool, existingRequest, onDone }: {
               await returnTool(tool.id)
               setReturning(false)
               router.refresh()
+              onDone()
             }}
           >
             {returning ? "Returnerer…" : "Returner"}

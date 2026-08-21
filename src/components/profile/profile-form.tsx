@@ -183,6 +183,7 @@ export function ProfileForm({ profile, email }: Props) {
                 { name: "email_event_notifications",        checked: profile?.email_event_notifications        ?? true, label: "Kalender",         desc: "Nye hendelser og invitasjoner" },
                 { name: "email_maintenance_notifications",  checked: profile?.email_maintenance_notifications  ?? true, label: "Vedlikehold",      desc: "Når du tildeles en oppgave" },
                 { name: "email_announcement_notifications", checked: profile?.email_announcement_notifications ?? true, label: "Kunngjøringer",    desc: "Meldinger fra administrator" },
+                { name: "email_tool_notifications",         checked: profile?.email_tool_notifications         ?? true, label: "Verktøy",           desc: "Låneforespørsler og svar" },
               ].map(({ name, checked, label, desc }) => (
                 <label key={name} className="flex items-center gap-3 cursor-pointer">
                   <input
